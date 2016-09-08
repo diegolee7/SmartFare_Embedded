@@ -12,6 +12,7 @@
 #include "lcd_st7565s.h"
 #include "lpc_rom8x8.h"
 
+void board_lcd_init();
 
 /**
  * @Brief show a message for each situation
@@ -22,6 +23,7 @@
  *	3 -User check out ok
  *	4 -User check out with negative balance
  */
-void action(int a);
+void change_lcd_message(int message_code);
+void write_lcd_text (int line, char* string);
 
 #endif /* SRC_LCD_TEST_H_ */

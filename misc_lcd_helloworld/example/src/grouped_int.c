@@ -37,7 +37,7 @@
  * Private types/enumerations/variables
  ****************************************************************************/
 
-#if defined(BOARD_HITEX_EVA_4350) || defined(BOARD_HITEX_EVA_1850)
+#if defined(BOARD_NXP_LPCXPRESSO_4337)
 
 /* The only switch available on this board is the ISP switch input.  The other
    switches are connected to an I2C device. */
@@ -47,45 +47,6 @@
 #define TEST_BUTTON_PIN_BIT         7
 #define TEST_BUTTON_MODE_FUNC       SCU_MODE_FUNC0
 
-#elif defined(BOARD_NXP_LPCXPRESSO_4337)
-
-/* The only switch available on this board is the ISP switch input.  The other
-   switches are connected to an I2C device. */
-#define TEST_BUTTON_PORT            0
-#define TEST_BUTTON_BIT             7
-#define TEST_BUTTON_PIN_PORT        2
-#define TEST_BUTTON_PIN_BIT         7
-#define TEST_BUTTON_MODE_FUNC       SCU_MODE_FUNC0
-
-#elif defined(BOARD_KEIL_MCB_4357) || defined(BOARD_KEIL_MCB_1857)
-
-/* This is the P4_0 button. */
-#define TEST_BUTTON_PORT            2
-#define TEST_BUTTON_BIT             0
-#define TEST_BUTTON_PIN_PORT        4
-#define TEST_BUTTON_PIN_BIT         0
-#define TEST_BUTTON_MODE_FUNC       SCU_MODE_FUNC0
-
-#elif defined(BOARD_NGX_XPLORER_1830) || defined(BOARD_NGX_XPLORER_4330)
-
-// FIXME: - These boards were not tested with IAR toolchain.  There are errors
-//          downloading to flash, etc.
-
-/* This is the USER_SWITCH. */
-#define TEST_BUTTON_PORT            0
-#define TEST_BUTTON_BIT             7
-#define TEST_BUTTON_PIN_PORT        2
-#define TEST_BUTTON_PIN_BIT         7
-#define TEST_BUTTON_MODE_FUNC       SCU_MODE_FUNC0
-
-#elif defined(BOARD_NXP_LPCLINK2_4370)
-
-/* This is JP1.  Install JP1 to invoke interrupt. */
-#define TEST_BUTTON_PORT            5
-#define TEST_BUTTON_BIT             7
-#define TEST_BUTTON_PIN_PORT        2
-#define TEST_BUTTON_PIN_BIT         8
-#define TEST_BUTTON_MODE_FUNC       SCU_MODE_FUNC4
 
 #else
 #error "Grouped GPIO Interrupt not configured for this example"
@@ -95,8 +56,8 @@
  * Public types/enumerations/variables
  ****************************************************************************/
 
-int action_number=0;
-int interrupt_flag=0;
+int message_code = 0;
+int interrupt_flag = 0;
 
 /*****************************************************************************
  * Private functions
@@ -113,15 +74,14 @@ int interrupt_flag=0;
 void GINT0_IRQHandler(void)
 {
 	Chip_GPIOGP_ClearIntStatus(LPC_GPIOGROUP, 0);
-	//Board_LED_Toggle(0);
-	interrupt_flag=1;
+	interrupt_flag = 1;
 }
+
 
 /**
  * @brief	Main program body
  * @return	Does not return
  */
-
 int main(void)
 {
 	/* Generic Initialization */
@@ -152,12 +112,12 @@ int main(void)
 
 	/* Spin in a loop here.  All the work is done in ISR. */
 	while (1) {
-		if(interrupt_flag){
-			action(action_number);
-			interrupt_flag=0;
-			action_number++;
-			if(action_number>4){
-				action_number=0;
+		if (interrupt_flag) {
+			change_lcd_message(message_code);
+			interrupt_flag = 0;
+			message_code++;
+			if (message_code > 4) {
+				message_code = 0;
 			}
 		}
 		__WFI();

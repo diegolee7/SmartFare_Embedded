@@ -5,6 +5,8 @@
  *      Author: luisfg30
  */
 
+#define FONT_SIZE 8; // pixels
+
 #include "lcd_test.h"
 
 //variables that are updated outside (when user taps the card)
@@ -16,8 +18,6 @@ volatile float travel_fare;
 char string[16];
 uint32_t last_user_ID;
 float min_balance = 3.0f;
-
-int font_size = 8; //font_size in pixels
 
 void board_lcd_init(){
 	//set up the LCD screen
@@ -32,8 +32,7 @@ void board_lcd_init(){
 /**
  * show a message for each situation
  */
-void action(int a) {
-
+void change_lcd_message(int message_code) {
 
 	int i,j;
 
@@ -46,43 +45,55 @@ void action(int a) {
 	LCD_Refresh(0, 0, LCD_X_RES - 1, LCD_Y_RES - 1);
 
 	sprintf(string, "user_ID: %u", user_ID);
-	LCD_PutStrXY(0, 0, string);
-	switch (a) {
+	write_lcd_text(0, string);
+	switch (message_code) {
 
 	case 0:
-		LCD_PutStrXY(0, font_size + 1, "Unauthorized");
+		write_lcd_text(1, "Unauthorized");
 		break;
 
 	case 1:
-		LCD_PutStrXY(0, font_size + 1, "Saldo insufic.");
+		write_lcd_text(1, "Saldo insufic.");
 		sprintf(string, "saldo: %.2f", balance);
-		LCD_PutStrXY(0, 2 * font_size + 1, string);
+		write_lcd_text(2, string);
 		sprintf(string, "saldo_min: %.2f", min_balance);
-		LCD_PutStrXY(0, 3 * font_size + 1, string);
+		write_lcd_text(3, string);
 		break;
 
 	case 2:
-		LCD_PutStrXY(0, font_size + 1, "Authorized");
+		write_lcd_text(1, "Authorized");
 		sprintf(string, "saldo: %.2f", balance);
-		LCD_PutStrXY(0, 2 * font_size + 1, string);
-		LCD_PutStrXY(0, 4 * font_size + 1, "Boa viagem");
+		write_lcd_text(2, string);
+		write_lcd_text(4, "Boa viagem");
 		break;
 
 	case 3:
 		sprintf(string, "tarifa: %.2f", travel_fare);
-		LCD_PutStrXY(0, font_size + 1, string);
+		write_lcd_text(1, string);
 		sprintf(string, "saldo: %.2f", balance);
-		LCD_PutStrXY(0, 2 * font_size + 1, string);
+		write_lcd_text(2, string);
 		break;
 
 	case 4:
 		sprintf(string, "tarifa: %.2f", travel_fare);
-		LCD_PutStrXY(0, font_size + 1, string);
+		write_lcd_text(1, string);
 		sprintf(string, "saldo: %.2f", balance);
-		LCD_PutStrXY(0, 2 * font_size + 1, string);
-		LCD_PutStrXY(0, 4 * font_size + 1, "*Cobrado na");
-		LCD_PutStrXY(0, 5 * font_size + 1, " prox. recarga");
+		write_lcd_text(2, string);
+		write_lcd_text(4, "*Cobrado na");
+		write_lcd_text(5, " prox. recarga");
 		break;
 	}
+}
+
+//size (128x64)
+void write_lcd_text (int line, char* text) {
+	
+	int line_size = FONT_SIZE;
+	line_size += 2;
+	int number_lines = LCD_Y_RES/line_size;
+	if (line < number_lines) {
+		LCD_PutStrXY(0, line *line_size, text);
+	} 
+	
 }
 
