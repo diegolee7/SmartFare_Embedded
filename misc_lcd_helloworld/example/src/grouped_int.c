@@ -31,6 +31,7 @@
 
 #include "board.h"
 #include "chip.h"
+#include "lcd_test.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -94,6 +95,9 @@
  * Public types/enumerations/variables
  ****************************************************************************/
 
+int action_number=0;
+int interrupt_flag=0;
+
 /*****************************************************************************
  * Private functions
  ****************************************************************************/
@@ -109,13 +113,15 @@
 void GINT0_IRQHandler(void)
 {
 	Chip_GPIOGP_ClearIntStatus(LPC_GPIOGROUP, 0);
-	Board_LED_Toggle(0);
+	//Board_LED_Toggle(0);
+	interrupt_flag=1;
 }
 
 /**
  * @brief	Main program body
  * @return	Does not return
  */
+
 int main(void)
 {
 	/* Generic Initialization */
@@ -125,6 +131,9 @@ int main(void)
 	   Chip_GPIO_Init is not called again */
 	Board_Init();
 	Board_LED_Set(0, false);
+
+	//init shield lcd
+	board_lcd_init();//
 
 	/* Set pin back to GPIO (on some boards may have been changed to something
 	   else by Board_Init()) */
@@ -142,5 +151,15 @@ int main(void)
 	NVIC_EnableIRQ(GINT0_IRQn);
 
 	/* Spin in a loop here.  All the work is done in ISR. */
-	while (1) {}
+	while (1) {
+		if(interrupt_flag){
+			action(action_number);
+			interrupt_flag=0;
+			action_number++;
+			if(action_number>4){
+				action_number=0;
+			}
+		}
+		__WFI();
+	}
 }
