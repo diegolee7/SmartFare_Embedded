@@ -64,7 +64,7 @@
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
 	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);		// Release slave again
 	 	// Stop using the SPI bus
-	 	Chip_SSP_Disable(LPC_SSP1);
+//	 	Chip_SSP_Disable(LPC_SSP1);
 	 } // End PCD_WriteRegister()
 
 	 /**
@@ -92,7 +92,7 @@
 	 		Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
 	 	}
 	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);		// Release slave again
-	 	Chip_SSP_Disable(LPC_SSP1); // Stop using the SPI bus
+//	 	Chip_SSP_Disable(LPC_SSP1); // Stop using the SPI bus
 	 } // End PCD_WriteRegister()
 
 	 /**
@@ -119,7 +119,7 @@
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
 	 	value = mfrc->Rx_Buf[0];
 	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);			// Release slave again
-	 	Chip_SSP_Disable(LPC_SSP1);// Stop using the SPI bus
+//	 	Chip_SSP_Disable(LPC_SSP1);// Stop using the SPI bus
 	 	return value;
 	 } // End PCD_ReadRegister()
 
@@ -183,7 +183,7 @@
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
 	 	values[index] = mfrc->Rx_Buf[0];
 	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);		// Release slave again
-	 	Chip_SSP_Disable(LPC_SSP1); // Stop using the SPI bus
+//	 	Chip_SSP_Disable(LPC_SSP1); // Stop using the SPI bus
 	 } // End PCD_ReadRegister()
 
 	 /**
@@ -256,6 +256,17 @@
 	  * Initializes the MFRC522 chip.
 	  */
 	 void PCD_Init(MFRC522Ptr_t mfrc) {
+
+		//Init the SSP interface pins
+		 Board_SSP_Init(LPC_SSP1);
+
+			/* Enable the SSP interface */
+			Chip_SSP_Init(LPC_SSP1);
+			Chip_SSP_Set_Mode(LPC_SSP1, SSP_MODE_MASTER);
+			Chip_SSP_SetFormat(LPC_SSP1, SSP_BITS_8, SSP_FRAMEFORMAT_SPI, SSP_CLOCK_CPHA0_CPOL0);
+			Chip_SSP_SetBitRate(LPC_SSP1, LCD_BIT_RATE);
+			Chip_SSP_Enable(LPC_SSP1);
+
 	 	// Set the chipSelectPin as digital output, do not select the slave yet
 	 	Chip_GPIO_SetPinDIROutput(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin);
 	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);
@@ -1392,7 +1403,7 @@
 
 	 	// (suggested) PICC type
 	 	PICC_Type piccType = PICC_GetType(uid->sak);
-	 	DEBUGOUT("PICC type: ");
+	 	DEBUGOUT(" PICC type: ");
 	 	DEBUGOUT(PICC_GetTypeName(piccType));
 	 } // End PICC_DumpDetailsToSerial()
 
@@ -1901,7 +1912,7 @@
 	  */
 	 bool PICC_IsNewCardPresent(MFRC522Ptr_t mfrc) {
 	 	uint8_t bufferATQA[2];
-	 	uint8_t bufferSize = sizeof(bufferATQA);
+	 	uint8_t bufferSize = 2;//sizeof(bufferATQA);
 	 	StatusCode result = PICC_RequestA(mfrc, bufferATQA, &bufferSize);
 	 	return (result == STATUS_OK || result == STATUS_COLLISION);
 	 } // End PICC_IsNewCardPresent()

@@ -47,13 +47,15 @@ int main(void) {
 		// Look for new cards
 		if ( ! PICC_IsNewCardPresent(mfrc1)) {
 			Board_LED_Toggle(1);
-			return -1;
+			DEBUGOUT("NEWCARD\r\n");
+//			return;
 		}
 
 		// Select one of the cards
 		if ( ! PICC_ReadCardSerial(mfrc1)) {
 			Board_LED_Toggle(2);
-			return -1;
+			DEBUGOUT("READCARDSERIAL\r\n");
+//			return;
 		}
 
 		// Dump debug info about the card; PICC_HaltA() is automatically called
