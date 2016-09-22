@@ -31,7 +31,8 @@
 
 #include "board.h"
 #include "chip.h"
-#include "lcd_test.h"
+
+#include "lcd_shield.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables

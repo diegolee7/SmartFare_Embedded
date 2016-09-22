@@ -1,12 +1,12 @@
 /*
- * lcd_test.h
+ * lcd_shield.h
  *
  *  Created on: 1 de set de 2016
  *      Author: luisfg30
  */
 
-#ifndef SRC_LCD_TEST_H_
-#define SRC_LCD_TEST_H_
+#ifndef SRC_LCD_SHIELD_H_
+#define SRC_LCD_SHIELD_H_
 
 #include "board.h"
 #include "lcd_st7565s.h"
@@ -26,4 +26,4 @@ void board_lcd_init();
 void change_lcd_message(int message_code);
 void write_lcd_text (int line, char* string);
 
-#endif /* SRC_LCD_TEST_H_ */
+#endif /* SRC_LCD_SHIELD_H_ */
