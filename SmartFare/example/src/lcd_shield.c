@@ -1,5 +1,5 @@
 /*
- * lcd_test.c
+ * lcd_shield.c
  *
  *  Created on: 1 de set de 2016
  *      Author: luisfg30
@@ -7,7 +7,7 @@
 
 #define FONT_SIZE 8; // pixels
 
-#include "lcd_test.h"
+#include "lcd_shield.h"
 
 //variables that are updated outside (when user taps the card)
 volatile uint32_t user_ID;

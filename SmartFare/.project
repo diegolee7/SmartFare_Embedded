@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>misc_lcd_helloworld</name>
+	<name>SmartFare</name>
 	<comment></comment>
 	<projects>
 		<project>lpc_chip_43xx</project>
