@@ -10,12 +10,27 @@
 
 
 	 /**
-	  * Set up the data structures of an MFRC522 ADT object
+	  * Set up the data structures of an MFRC522 ADT object and return a pointer
 	  */
-	 void MFRC522_Init(MFRC522Ptr_t mfrc){
-		 mfrc->data_Setup.length = BUFFER_SIZE;
-		 mfrc->data_Setup.tx_data = mfrc->Tx_Buf;
-		 mfrc->data_Setup.rx_data = mfrc->Rx_Buf;
+	 MFRC522Ptr_t MFRC522_Init(){
+		 //allocate structs
+		static struct MFRC522_T mfrc_struct;
+		static Chip_SSP_DATA_SETUP_T data_setup;
+
+		 //initalizae fields
+		 uint16_t i;
+		 for (i = 0; i < BUFFER_SIZE; i++){
+			 mfrc_struct.Rx_Buf[i]=0;
+			 mfrc_struct.Tx_Buf[i]=0;
+		 }
+
+		 //assign values
+		 data_setup.length=BUFFER_SIZE;
+		 data_setup.rx_data=mfrc_struct.Rx_Buf;
+		 data_setup.tx_data=mfrc_struct.Tx_Buf;
+		 mfrc_struct.data_Setup=data_setup;
+
+		 return &mfrc_struct;
 	 } // End constructor
 
 
@@ -100,6 +115,7 @@
 
 	 //	value = SPI.transfer(0);					// Read the value back. Send 0 to stop reading.
 	 	mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
+	 	mfrc->Tx_Buf[0] = 0x00;
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
 	 	value = mfrc->Rx_Buf[0];
 	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);			// Release slave again

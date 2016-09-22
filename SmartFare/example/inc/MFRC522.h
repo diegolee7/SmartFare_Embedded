@@ -288,8 +288,8 @@ static const uint8_t FIFO_SIZE = 64;		// Size of the MFRC522 FIFO
 	typedef struct MFRC522_T * MFRC522Ptr_t;
 
 
-	//Function to setup a MFRC522 ADT object
-		void MFRC522_Init(MFRC522Ptr_t mfrc);
+	//Function to setup a MFRC522 ADT object,returns an initialized object
+	MFRC522Ptr_t MFRC522_Init();
 
 	 /////////////////////////////////////////////////////////////////////////////////////
 	 	// Basic interface functions for communicating with the MFRC522
