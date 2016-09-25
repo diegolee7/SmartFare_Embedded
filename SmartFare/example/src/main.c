@@ -1,38 +1,22 @@
-/*
- * @brief Grouped GPIO Interrupt example
+/**
+ * LICENSE
+ * Main file ,incremental functionalities added
+ * 1- Show message in the OM13082 shield LCD when a button is pressed
  *
- * @note
- * Copyright(C) NXP Semiconductors, 2013
- * All rights reserved.
- *
- * @par
- * Software that is described herein is for illustrative purposes only
- * which provides customers with programming information regarding the
- * LPC products.  This software is supplied "AS IS" without any warranties of
- * any kind, and NXP Semiconductors and its licensor disclaim any and
- * all warranties, express or implied, including all implied warranties of
- * merchantability, fitness for a particular purpose and non-infringement of
- * intellectual property rights.  NXP Semiconductors assumes no responsibility
- * or liability for the use of the software, conveys no license or rights under any
- * patent, copyright, mask work right, or any other intellectual property rights in
- * or to any products. NXP Semiconductors reserves the right to make changes
- * in the software without notification. NXP Semiconductors also makes no
- * representation or warranty that such application will be suitable for the
- * specified use without further testing or modification.
- *
- * @par
- * Permission to use, copy, modify, and distribute this software and its
- * documentation is hereby granted, under NXP Semiconductors' and its
- * licensor's relevant copyrights in the software, without fee, provided that it
- * is used in conjunction with NXP Semiconductors microcontrollers.  This
- * copyright, permission, and disclaimer notice must appear in all copies of
- * this code.
  */
-
+/*****************************************************************************
+ * LPCXpresso4337 project includes
+ ****************************************************************************/
 #include "board.h"
 #include "chip.h"
+#include <cr_section_macros.h>
 
+/*****************************************************************************
+ * Custom files and libraries includes
+ ****************************************************************************/
 #include "lcd_shield.h"
+#include "delay.h"
+#include "MFRC522.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -85,7 +69,7 @@ void GINT0_IRQHandler(void)
  */
 int main(void)
 {
-	/* Generic Initialization */
+	// Read clock settings and update SystemCoreClock variable
 	SystemCoreClockUpdate();
 
 	/* Board_Init calls Chip_GPIO_Init and enables GPIO clock if needed,
@@ -93,8 +77,26 @@ int main(void)
 	Board_Init();
 	Board_LED_Set(0, false);
 
-	//init shield lcd
+	//init shield lcd, and SSP interface pins
 	board_lcd_init();//
+
+
+	/*****************************************************************************
+	 *Set up RFID
+	 ****************************************************************************/
+	    SysTick_Init();//to use the delay library
+	    MFRC522Ptr_t mfrc1=MFRC522_Init();
+	    //Define the pins to use as CS(SS or SSEL)  an RST
+		Chip_SCU_PinMuxSet (0x1, 12,  (SCU_PINIO_FAST | SCU_MODE_FUNC0)); //Set as GPIO
+		Chip_SCU_PinMuxSet (0x1, 10,  (SCU_PINIO_FAST | SCU_MODE_FUNC0)); //Set as GPIO
+	    // GPIO1[12]= P2_12
+	    mfrc1->_chipSelectPin.port = 1;
+	    mfrc1->_chipSelectPin.pin = 12;
+	    // GPIO1[10]= P2_9
+	    mfrc1->_resetPowerDownPin.port = 1;
+	    mfrc1->_resetPowerDownPin.pin = 10;
+	    PCD_Init(mfrc1);
+	    PCD_DumpVersionToSerial(mfrc1);	// Show details of PCD - MFRC522 Card Reader details
 
 	/* Set pin back to GPIO (on some boards may have been changed to something
 	   else by Board_Init()) */
@@ -111,6 +113,7 @@ int main(void)
 	/* Enable Group GPIO interrupt 0 */
 	NVIC_EnableIRQ(GINT0_IRQn);
 
+
 	/* Spin in a loop here.  All the work is done in ISR. */
 	while (1) {
 		if (interrupt_flag) {
@@ -121,6 +124,33 @@ int main(void)
 				message_code = 0;
 			}
 		}
+
+		//////////////////////
+	    //RF ID test
+		//////////////////////
+
+		// Look for new cards
+		if ( ! PICC_IsNewCardPresent(mfrc1)) {
+					Board_LED_Toggle(1);
+					delay_ms(500);
+					continue;
+		}
+
+		// Select one of the cards
+		if ( ! PICC_ReadCardSerial(mfrc1)) {
+					Board_LED_Toggle(2);
+					delay_ms(500);
+					continue;
+		}
+
+		//show card UID
+		DEBUGOUT("Card uid: ");
+		for (uint8_t i = 0; i < mfrc1->uid.size; i++)
+		 {
+			DEBUGOUT(" %X02", mfrc1->uid.uidByte[i]);
+		 }
+		DEBUGOUT("\n\r");
+
 		__WFI();
 	}
 }

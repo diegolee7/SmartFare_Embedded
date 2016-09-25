@@ -53,18 +53,25 @@
 	 	Chip_SSP_SetBitRate(LPC_SSP1, MFRC522_BIT_RATE);
 	 	Chip_SSP_Enable(LPC_SSP1);
 
-	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) false);		// Select slave
-	 	//SPI.transfer(reg & 0x7E);				// MSB == 0 is for writing. LSB is not used in address. Datasheet section 8.1.2.3.
+		// Select slave
+	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) false);
+
+	 	// MSB == 0 is for writing. LSB is not used in address. Datasheet section 8.1.2.3.
+	 	//SPI.transfer(reg & 0x7E);
 	 	mfrc->Tx_Buf[0]=reg & 0x7E;
 	 	mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
+
 	 	//SPI.transfer(value);
 	 	mfrc->Tx_Buf[0]=value;
 	 	mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
+
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
-	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);		// Release slave again
+	 	// Release slave again
+	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);
+
 	 	// Stop using the SPI bus
-//	 	Chip_SSP_Disable(LPC_SSP1);
+	 	Chip_SSP_Disable(LPC_SSP1);
 	 } // End PCD_WriteRegister()
 
 	 /**
@@ -81,18 +88,25 @@
 	 	Chip_SSP_SetBitRate(LPC_SSP1, MFRC522_BIT_RATE);
 	 	Chip_SSP_Enable(LPC_SSP1);
 	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) false);		// Select slave
-	 //	SPI.transfer(reg & 0x7E);// MSB == 0 is for writing. LSB is not used in address. Datasheet section 8.1.2.3.
+
+	 	//	SPI.transfer(reg & 0x7E);
+	 	// MSB == 0 is for writing. LSB is not used in address. Datasheet section 8.1.2.3.
 	 	mfrc->Tx_Buf[0]=reg & 0x7E;
 	 	mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
+
 	 	for (uint8_t index = 0; index < count; index++) {
 	 		//SPI.transfer(values[index]);
 	 		mfrc->Tx_Buf[0]=values[index];
 	 		mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
 	 		Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
 	 	}
-	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);		// Release slave again
-//	 	Chip_SSP_Disable(LPC_SSP1); // Stop using the SPI bus
+
+	 	// Release slave again
+	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);
+
+	 	// Stop using the SPI bus
+	 	Chip_SSP_Disable(LPC_SSP1);
 	 } // End PCD_WriteRegister()
 
 	 /**
@@ -103,23 +117,31 @@
 			 	 	 	 	 	 uint8_t reg	///< The register to read from. One of the PCD_Register enums.
 	 						  ) {
 	 	uint8_t value;
+
 	 	// Set the settings to work with SPI bus
 	 	Chip_SSP_SetFormat(LPC_SSP1, SSP_BITS_8, SSP_FRAMEFORMAT_SPI, SSP_CLOCK_CPHA0_CPOL0);
 	 	Chip_SSP_SetBitRate(LPC_SSP1, MFRC522_BIT_RATE);
 	 	Chip_SSP_Enable(LPC_SSP1);
 	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) false);			// Select slave
-	 //	SPI.transfer(0x80 | (reg & 0x7E));			// MSB == 1 is for reading. LSB is not used in address. Datasheet section 8.1.2.3.
+
+	 	// MSB == 1 is for reading. LSB ==0, not used in address. Datasheet section 8.1.2.3.
+	 	//	SPI.transfer(0x80 | (reg & 0x7E));
 	 	mfrc->Tx_Buf[0] = 0x80 | (reg & 0x7E);
 	 	mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
 
-	 //	value = SPI.transfer(0);					// Read the value back. Send 0 to stop reading.
+	 	// Read the value back. Send 0 to stop reading.
+	 	//	value = SPI.transfer(0);
 	 	mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
 	 	mfrc->Tx_Buf[0] = 0x00;
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
 	 	value = mfrc->Rx_Buf[0];
-	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);			// Release slave again
-//	 	Chip_SSP_Disable(LPC_SSP1);// Stop using the SPI bus
+
+	 	// Release slave again
+	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);
+
+	 	// Stop using the SPI bus
+	 	Chip_SSP_Disable(LPC_SSP1);
 	 	return value;
 	 } // End PCD_ReadRegister()
 
@@ -140,13 +162,18 @@
 	 	//DEBUGOUT(F("Reading ")); 	DEBUGOUT(count); DEBUGOUT(F(" uint8_ts from register."));
 	 	uint8_t address = 0x80 | (reg & 0x7E);		// MSB == 1 is for reading. LSB is not used in address. Datasheet section 8.1.2.3.
 	 	uint8_t index = 0;							// Index in values array.
+
 	 	// Set the settings to work with SPI bus
 	 	Chip_SSP_SetFormat(LPC_SSP1, SSP_BITS_8, SSP_FRAMEFORMAT_SPI, SSP_CLOCK_CPHA0_CPOL0);
 	 	Chip_SSP_SetBitRate(LPC_SSP1, MFRC522_BIT_RATE);
 	 	Chip_SSP_Enable(LPC_SSP1);
 	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) false);		// Select slave
-	 	count--;								// One read is performed outside of the loop
-	 //	SPI.transfer(address);					// Tell MFRC522 which address we want to read
+
+	 	// One read is performed outside of the loop
+	 	count--;
+
+	 	// Tell MFRC522 which address we want to read
+	 	//	SPI.transfer(address);
 	 	mfrc->Tx_Buf[0] = address;
 	 	mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
@@ -159,17 +186,20 @@
 	 			for (uint8_t i = rxAlign; i <= 7; i++) {
 	 				mask |= (1 << i);
 	 			}
+
 	 			// Read value and tell that we want to read the same address again.
 	 //			uint8_t value = SPI.transfer(address);
 	 			mfrc->Tx_Buf[0] = address;
 	 			mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
 	 			Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
 	 			uint8_t value = mfrc->Rx_Buf[0];
+
 	 			// Apply mask to both current value of values[0] and the new data in value.
 	 			values[0] = (values[index] & ~mask) | (value & mask);
 	 		}
 	 		else { // Normal case
-	 //			values[index] = SPI.transfer(address);	// Read value and tell that we want to read the same address again.
+	 			// Read value and tell that we want to read the same address again.
+//	 			values[index] = SPI.transfer(address);
 	 			mfrc->Tx_Buf[0] = address;
 	 			mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
 	 			Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
@@ -177,13 +207,19 @@
 	 		}
 	 		index++;
 	 	}
-	 //	values[index] = SPI.transfer(0);			// Read the final uint8_t. Send 0 to stop reading.
+
+	 	// Read the final uint8_t. Send 0 to stop reading.
+	 //	values[index] = SPI.transfer(0);
 	 	mfrc->Tx_Buf[0] = 0;
 	 	mfrc->data_Setup.rx_cnt = mfrc->data_Setup.tx_cnt = 0;
 	 	Chip_SSP_RWFrames_Blocking(LPC_SSP1,&(mfrc->data_Setup));
 	 	values[index] = mfrc->Rx_Buf[0];
-	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);		// Release slave again
-//	 	Chip_SSP_Disable(LPC_SSP1); // Stop using the SPI bus
+
+	 	// Release slave again
+	 	Chip_GPIO_SetPinState(LPC_GPIO_PORT, mfrc->_chipSelectPin.port, mfrc->_chipSelectPin .pin, (bool) true);
+
+	 	 // Stop using the SPI bus
+	 	Chip_SSP_Disable(LPC_SSP1);
 	 } // End PCD_ReadRegister()
 
 	 /**
@@ -1912,7 +1948,7 @@
 	  */
 	 bool PICC_IsNewCardPresent(MFRC522Ptr_t mfrc) {
 	 	uint8_t bufferATQA[2];
-	 	uint8_t bufferSize = 2;//sizeof(bufferATQA);
+	 	uint8_t bufferSize = sizeof(bufferATQA);
 	 	StatusCode result = PICC_RequestA(mfrc, bufferATQA, &bufferSize);
 	 	return (result == STATUS_OK || result == STATUS_COLLISION);
 	 } // End PICC_IsNewCardPresent()
