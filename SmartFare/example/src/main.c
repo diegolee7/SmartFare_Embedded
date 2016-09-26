@@ -17,10 +17,13 @@
 #include "lcd_shield.h"
 #include "delay.h"
 #include "MFRC522.h"
+#include "SmartFareData.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
+
+#define  USER_BUFFER_SIZE  10
 
 #if defined(BOARD_NXP_LPCXPRESSO_4337)
 
@@ -43,6 +46,11 @@
 
 int message_code = 0;
 int interrupt_flag = 0;
+int last_balance = 0;
+int last_user_ID;
+
+//buffer to store the active users in the system. Onboard passengers
+static  UserInfo_T usersBuffer[USER_BUFFER_SIZE];
 
 /*****************************************************************************
  * Private functions
@@ -98,6 +106,9 @@ int main(void)
 	    PCD_Init(mfrc1);
 	    PCD_DumpVersionToSerial(mfrc1);	// Show details of PCD - MFRC522 Card Reader details
 
+	    //auxiliar variable to search an userId in the usersBuffer
+	    int userIndex;
+
 	/* Set pin back to GPIO (on some boards may have been changed to something
 	   else by Board_Init()) */
 	Chip_SCU_PinMuxSet(TEST_BUTTON_PIN_PORT, TEST_BUTTON_PIN_BIT,
@@ -132,14 +143,14 @@ int main(void)
 		// Look for new cards
 		if ( ! PICC_IsNewCardPresent(mfrc1)) {
 					Board_LED_Toggle(1);
-					delay_ms(500);
+					// delay_ms(500);
 					continue;
 		}
 
 		// Select one of the cards
 		if ( ! PICC_ReadCardSerial(mfrc1)) {
 					Board_LED_Toggle(2);
-					delay_ms(500);
+					// delay_ms(500);
 					continue;
 		}
 
@@ -147,10 +158,46 @@ int main(void)
 		DEBUGOUT("Card uid: ");
 		for (uint8_t i = 0; i < mfrc1->uid.size; i++)
 		 {
-			DEBUGOUT(" %X02", mfrc1->uid.uidByte[i]);
+			DEBUGOUT(" %X", mfrc1->uid.uidByte[i]);
 		 }
 		DEBUGOUT("\n\r");
 
+		//convert the uid bytes to an integer
+		last_user_ID= (int) mfrc1->uid.uidByte[0] | (int) mfrc1->uid.uidByte[1] <<8 | (int) mfrc1->uid.uidByte[2]<<16 | (int) mfrc1->uid.uidByte[3]<<24;
+		
+		//search for the uID in the usersBuffer
+		userIndex = getUserByID(last_user_ID);
+		if(userIndex == -1){
+			//Register user in the buffer
+			UserInfo_T user;
+			user.userID= last_user_ID;
+		}
+		else{
+			//user is already onboard
+			change_lcd_message(USTATUS_UNAUTHORIZED);
+		}
+
+		//read the user balance
+
 		__WFI();
 	}
+}
+
+
+/**
+ * Search for a given userID, returns an index to it if found, -1 otherwise
+ * @param  userID the iD to search for
+ * @return        the index of the user in the usersBuffer
+ */
+int getUserByID(int userID){
+
+	int i ;
+
+	for ( i = 0; i<USER_BUFFER_SIZE ; i++){
+		if ( userID == usersBuffer[i].userID){
+			return i;
+		}
+	}
+
+	return -1;
 }

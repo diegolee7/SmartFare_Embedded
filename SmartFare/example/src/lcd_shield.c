@@ -8,16 +8,17 @@
 #define FONT_SIZE 8; // pixels
 
 #include "lcd_shield.h"
+#include "SmartFareData.h"
 
 //variables that are updated outside (when user taps the card)
 volatile uint32_t user_ID;
-volatile float balance;
-volatile float travel_fare;
+volatile int balance;
+volatile int travel_fare;
 
 //Auxiliary variables
 char string[16];
 uint32_t last_user_ID;
-float min_balance = 3.0f;
+
 
 void board_lcd_init(){
 	//set up the LCD screen
@@ -48,11 +49,11 @@ void change_lcd_message(int message_code) {
 	write_lcd_text(0, string);
 	switch (message_code) {
 
-	case 0:
+	case USTATUS_UNAUTHORIZED:
 		write_lcd_text(1, "Unauthorized");
 		break;
 
-	case 1:
+	case USTATUS_INSUF_BALANCE:
 		write_lcd_text(1, "Saldo insufic.");
 		sprintf(string, "saldo: %.2f", balance);
 		write_lcd_text(2, string);
@@ -60,21 +61,21 @@ void change_lcd_message(int message_code) {
 		write_lcd_text(3, string);
 		break;
 
-	case 2:
+	case USTATUS_AUTHORIZED:
 		write_lcd_text(1, "Authorized");
 		sprintf(string, "saldo: %.2f", balance);
 		write_lcd_text(2, string);
 		write_lcd_text(4, "Boa viagem");
 		break;
 
-	case 3:
+	case USTATUS_TAP_OUT:
 		sprintf(string, "tarifa: %.2f", travel_fare);
 		write_lcd_text(1, string);
 		sprintf(string, "saldo: %.2f", balance);
 		write_lcd_text(2, string);
 		break;
 
-	case 4:
+	case USTATUS_TAP_OUT_LOW_BALANCE:
 		sprintf(string, "tarifa: %.2f", travel_fare);
 		write_lcd_text(1, string);
 		sprintf(string, "saldo: %.2f", balance);
