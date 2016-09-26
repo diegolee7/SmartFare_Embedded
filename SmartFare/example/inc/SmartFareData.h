@@ -5,6 +5,11 @@
  *      Author: luisfg30
  */
 
+#ifndef INC_SMARTFAREDATA_H_
+#define INC_SMARTFAREDATA_H_
+
+#define  USER_BUFFER_SIZE  10
+
 // balance in cents
 static const int min_balance = 300;
 
@@ -18,16 +23,9 @@ typedef enum __UserStatus{
 }UserStatus;
 
 typedef struct {
-	int userID;		//the PICC used stores a 4 byte user ID
-	int balance; 	// the user balance in cents.
+	unsigned int userID;		//the PICC used stores a 4 byte user ID
+	int balance; 	   		   // the user balance in cents, may be negative
 
 }UserInfo_T;
-
-
-
-#ifndef INC_SMARTFAREDATA_H_
-#define INC_SMARTFAREDATA_H_
-
-
 
 #endif /* INC_SMARTFAREDATA_H_ */

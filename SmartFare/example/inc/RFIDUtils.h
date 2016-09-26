@@ -9,14 +9,17 @@
  * Some functions to use with the MFRC522 module
  */
 
+#ifndef INC_RFIDUTILS_H_
+#define INC_RFIDUTILS_H_
+
 #include "MFRC522.h"
 
 /****************************************
  * Private variables
  ****************************************/
 
-//buffer used to store the read end write data, each block have 16 bytes
-static uint8_t buffer[16];
+//buffer used to store the read end write data, each block have 16 bytes, buffer must have 18 slots, see MIFARE_Read()
+static uint8_t buffer[18];
 static uint8_t size = sizeof(buffer);
 
 //return status from MFRC522 functions
@@ -71,7 +74,7 @@ static int writeCardBlock(MFRC522Ptr_t mfrc522 ,uint8_t sector, uint8_t blockAdd
 
 	MIFARE_Key key;
 	int i;
-	   // using FFFFFFFFFFFFh which is the default at chip delivery from the factory
+	   // using FFFFFFFFFFFF which is the default at chip delivery from the factory
 	for ( i = 0; i < 6; i++) {
 	    key.keyuint8_t[i] = 0xFF;
 	}
@@ -84,8 +87,8 @@ static int writeCardBlock(MFRC522Ptr_t mfrc522 ,uint8_t sector, uint8_t blockAdd
         return -1;
     }
 
-    // Read data from the block
-    status = (StatusCode) MIFARE_Write(mfrc522, blockAddr, buffer, size);
+    // Write data from the block, always write 16 bytes
+    status = (StatusCode) MIFARE_Write(mfrc522, blockAddr, buffer, 16);
     if (status != STATUS_OK) {
         DEBUGOUT("MIFARE_Write() failed: ");
         DEBUGOUT(GetStatusCodeName(status));
@@ -103,19 +106,20 @@ static int writeCardBlock(MFRC522Ptr_t mfrc522 ,uint8_t sector, uint8_t blockAdd
 /**
  * Function to read the balance, the balance is stored in the block 4 (sector 1), the first 4 bytes
  * @param  mfrc522 MFRC522 ADT pointer
- * @return         the balance istored in the PICC, -1 for reading erros
+ * @return         the balance istored in the PICC, -999 for reading erros
  */
-float readCardBalance(MFRC522Ptr_t mfrc522 ){
+int readCardBalance(MFRC522Ptr_t mfrc522 ){
 
 	int balance;
 
     int readStatus = readCardBlock(mfrc522, 1, 4);
 
     if(readStatus == 0){
-            balance= (int)buffer[0] | (int)(buffer[1]<<8) | (int)(buffer[2]<<16) | (int)(buffer[3]<<24);
+    		//convert the balance bytes to an integer, byte[0] is the MSB
+            balance= (int)buffer[3] | (int)(buffer[2]<<8) | (int)(buffer[1]<<16) | (int)(buffer[0]<<24);
     }
     else{
-        balance= -1;
+        balance= -999;
     }
 
     return balance;
@@ -127,7 +131,17 @@ float readCardBalance(MFRC522Ptr_t mfrc522 ){
  * @param  newBalance the balance to be writte  i  the card
  * @return            0 is no errors
  */
-int writeCardBalance(MFRC522Ptr_t mfrc522, float newBalance){
+int writeCardBalance(MFRC522Ptr_t mfrc522, int newBalance){
+
+	//set the 16 bytes buffer, buffer[0] is the MSB
+	buffer[0] = newBalance >> 24;
+	buffer[1] = newBalance >> 16;
+	buffer[2] = newBalance >> 8;
+	buffer[3] = newBalance & 0x000000FF;
+	int i;
+	for (i = 4; i<BUFFER_SIZE; i++){
+		buffer[i] = 0xBB;
+	}
 
     int writeStatus = writeCardBlock(mfrc522, 1, 4);
 
@@ -135,4 +149,4 @@ int writeCardBalance(MFRC522Ptr_t mfrc522, float newBalance){
 }
 
 
-
+#endif /* INC_RFIDUTILS_H_*/

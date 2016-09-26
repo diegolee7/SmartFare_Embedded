@@ -19,6 +19,8 @@
 #include "MFRC522.h"
 #include "SmartFareData.h"
 
+#include "RFIDUtils.h"
+
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
@@ -48,6 +50,7 @@ int message_code = 0;
 int interrupt_flag = 0;
 int last_balance = 0;
 int last_user_ID;
+int usersBufferIndex=0;
 
 //buffer to store the active users in the system. Onboard passengers
 static  UserInfo_T usersBuffer[USER_BUFFER_SIZE];
@@ -162,23 +165,45 @@ int main(void)
 		 }
 		DEBUGOUT("\n\r");
 
-		//convert the uid bytes to an integer
-		last_user_ID= (int) mfrc1->uid.uidByte[0] | (int) mfrc1->uid.uidByte[1] <<8 | (int) mfrc1->uid.uidByte[2]<<16 | (int) mfrc1->uid.uidByte[3]<<24;
+		//convert the uid bytes to an integer, byte[0] is the MSB
+		last_user_ID= (int) mfrc1->uid.uidByte[3] | (int) mfrc1->uid.uidByte[2] <<8 | (int) mfrc1->uid.uidByte[1]<<16 | (int) mfrc1->uid.uidByte[0]<<24;
 		
 		//search for the uID in the usersBuffer
 		userIndex = getUserByID(last_user_ID);
 		if(userIndex == -1){
 			//Register user in the buffer
-			UserInfo_T user;
-			user.userID= last_user_ID;
+			UserInfo_T new_user;
+			new_user.userID= last_user_ID;
+
+			//add user to usersBuffer
+			usersBuffer[usersBufferIndex]=new_user;
+			usersBufferIndex++;
+			if(usersBufferIndex > USER_BUFFER_SIZE-1){
+				//save buffer in other safe place
+				//overwrite buffer values
+				usersBufferIndex = 0;
+			}
 		}
 		else{
 			//user is already onboard
-			change_lcd_message(USTATUS_UNAUTHORIZED);
+//			change_lcd_message(USTATUS_UNAUTHORIZED);
 		}
 
-		//read the user balance
 
+		//read the user balance
+		last_balance=readCardBalance(mfrc1);
+		if(last_balance == (-999)){
+			//error handling
+		}
+		else{
+			//check for minumim balance
+			if (last_balance < min_balance) {
+//				change_lcd_message(USTATUS_AUTHORIZED);
+			}
+			else{
+//				change_lcd_message(USTATUS_INSUF_BALANCE);
+			}
+		}
 		__WFI();
 	}
 }

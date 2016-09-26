@@ -344,7 +344,7 @@ static const uint8_t FIFO_SIZE = 64;		// Size of the MFRC522 FIFO
 	 	// Support functions
 	 	/////////////////////////////////////////////////////////////////////////////////////
 	 	StatusCode PCD_MIFARE_Transceive(MFRC522Ptr_t mfrc, uint8_t *sendData, uint8_t sendLen, bool acceptTimeout);
-	 	static PICC_Type PICC_GetType(uint8_t sak);
+	 	//static PICC_Type PICC_GetType(uint8_t sak);
 	 	const char *GetStatusCodeName(StatusCode code);
 	 	const char *PICC_GetTypeName(PICC_Type type);
 		StatusCode MIFARE_TwoStepHelper(MFRC522Ptr_t mfrc, uint8_t command, uint8_t blockAddr, long data);
