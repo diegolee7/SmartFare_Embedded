@@ -277,6 +277,7 @@ static const uint8_t FIFO_SIZE = 64;		// Size of the MFRC522 FIFO
 	 struct MFRC522_T{
 		 Uid uid;	// Used by PICC_ReadCardSerial().
 		 //Variables used in the SSP(SPI) peripheral of the board
+		 LPC_SSP_T *pSSP;	//Select SSP0 or SSP1
 		 io_port_t _chipSelectPin;// = {1, 8}; // As default example use GPIO1[8]= P1_5
 		 io_port_t _resetPowerDownPin;// = {3, 4}; //As default example use GPIO3[4]= P6_5
 		 Chip_SSP_DATA_SETUP_T data_Setup;
@@ -306,7 +307,7 @@ static const uint8_t FIFO_SIZE = 64;		// Size of the MFRC522 FIFO
 	 	/////////////////////////////////////////////////////////////////////////////////////
 	 	// Functions for manipulating the MFRC522
 	 	/////////////////////////////////////////////////////////////////////////////////////
-	 	void PCD_Init(MFRC522Ptr_t mfrc);
+	 	void PCD_Init(MFRC522Ptr_t mfrc, LPC_SSP_T *pSSP);
 	 	void PCD_Reset(MFRC522Ptr_t mfrc);
 	 	void PCD_AntennaOn(MFRC522Ptr_t mfrc);
 	 	void PCD_AntennaOff(MFRC522Ptr_t mfrc);

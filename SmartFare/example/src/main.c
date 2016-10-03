@@ -49,7 +49,7 @@
 int message_code = 0;
 int interrupt_flag = 0;
 int last_balance = 0;
-uint32_t last_user_ID;
+unsigned int last_user_ID;
 int usersBufferIndex=0;
 
 //buffer to store the active users in the system. Onboard passengers
@@ -106,7 +106,7 @@ int main(void)
 	    // GPIO1[10]= P2_9
 	    mfrc1->_resetPowerDownPin.port = 1;
 	    mfrc1->_resetPowerDownPin.pin = 10;
-	    PCD_Init(mfrc1);
+	    PCD_Init(mfrc1,LPC_SSP1);
 	    PCD_DumpVersionToSerial(mfrc1);	// Show details of PCD - MFRC522 Card Reader details
 
 	    //auxiliar variable to search an userId in the usersBuffer
@@ -188,17 +188,12 @@ int main(void)
 		else{
 			//check for minumim balance
 			if (last_balance < min_balance) {
-				change_lcd_message(USTATUS_AUTHORIZED);
-			}
-			else{
 				change_lcd_message(USTATUS_INSUF_BALANCE);
 			}
+			else{
+				change_lcd_message(USTATUS_AUTHORIZED);
+			}
 		}
-
-	    // Halt PICC
-		PICC_HaltA( mfrc1);
-	    // Stop encryption on PCD
-	    PCD_StopCrypto1( mfrc1);
 		__WFI();
 	}
 }
@@ -213,7 +208,7 @@ int main(void)
  * @param  userID the iD to search for
  * @return        the index of the user in the usersBuffer
  */
-int getUserByID(int userID){
+int getUserByID(unsigned int userID){
 
 	int i ;
 
@@ -226,7 +221,7 @@ int getUserByID(int userID){
 	return -1;
 }
 
-void addNewUser(uint32_t userID){
+void addNewUser(unsigned int userID){
 	UserInfo_T new_user;
 	new_user.userID= userID;
 
