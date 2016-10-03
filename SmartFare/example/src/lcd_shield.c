@@ -10,14 +10,10 @@
 #include "lcd_shield.h"
 #include "SmartFareData.h"
 
-//variables that are updated outside (when user taps the card)
-volatile uint32_t user_ID;
-volatile int balance;
-volatile int travel_fare;
+
 
 //Auxiliary variables
 char string[16];
-uint32_t last_user_ID;
 
 
 void board_lcd_init(){

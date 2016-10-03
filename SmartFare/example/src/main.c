@@ -49,7 +49,7 @@
 int message_code = 0;
 int interrupt_flag = 0;
 int last_balance = 0;
-int last_user_ID;
+uint32_t last_user_ID;
 int usersBufferIndex=0;
 
 //buffer to store the active users in the system. Onboard passengers
@@ -172,21 +172,11 @@ int main(void)
 		userIndex = getUserByID(last_user_ID);
 		if(userIndex == -1){
 			//Register user in the buffer
-			UserInfo_T new_user;
-			new_user.userID= last_user_ID;
-
-			//add user to usersBuffer
-			usersBuffer[usersBufferIndex]=new_user;
-			usersBufferIndex++;
-			if(usersBufferIndex > USER_BUFFER_SIZE-1){
-				//save buffer in other safe place
-				//overwrite buffer values
-				usersBufferIndex = 0;
-			}
+			addNewUser(last_user_ID);
 		}
 		else{
 			//user is already onboard
-//			change_lcd_message(USTATUS_UNAUTHORIZED);
+			change_lcd_message(USTATUS_UNAUTHORIZED);
 		}
 
 
@@ -198,16 +188,25 @@ int main(void)
 		else{
 			//check for minumim balance
 			if (last_balance < min_balance) {
-//				change_lcd_message(USTATUS_AUTHORIZED);
+				change_lcd_message(USTATUS_AUTHORIZED);
 			}
 			else{
-//				change_lcd_message(USTATUS_INSUF_BALANCE);
+				change_lcd_message(USTATUS_INSUF_BALANCE);
 			}
 		}
+
+	    // Halt PICC
+		PICC_HaltA( mfrc1);
+	    // Stop encryption on PCD
+	    PCD_StopCrypto1( mfrc1);
 		__WFI();
 	}
 }
 
+
+/**********************************
+ *  Some util functions
+ **********************************/
 
 /**
  * Search for a given userID, returns an index to it if found, -1 otherwise
@@ -226,3 +225,19 @@ int getUserByID(int userID){
 
 	return -1;
 }
+
+void addNewUser(uint32_t userID){
+	UserInfo_T new_user;
+	new_user.userID= userID;
+
+	//add user to usersBuffer
+	usersBuffer[usersBufferIndex]=new_user;
+	usersBufferIndex++;
+	if(usersBufferIndex > USER_BUFFER_SIZE-1){
+		//save buffer in other safe place
+		//overwrite buffer values
+		usersBufferIndex = 0;
+	}
+}
+
+
