@@ -69,3 +69,4 @@
 .DS_Store
 
 **/Debug/
+periph_uart_rb

@@ -165,6 +165,8 @@ bool httpInit()
 }
 bool httpConnect(const char* url, const char* args)
 {
+	//args=0; //Default value if not set in function call, only works in C++
+
     // Sets url
     SIM_SERIAL.print("AT+HTTPPARA=\"URL\",\"");
     SIM_SERIAL.print(url);

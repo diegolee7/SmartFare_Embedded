@@ -17,14 +17,17 @@
 #define INC_SIM800_H_
 
 
-#include <Arduino.h>
+//Adjustments to work with the NXP LPCExpresso4337 board
+#include "board.h"
+#include <stdint.h>
+
 
 
 // change this to the pin connect with SIM800 reset pin
 #define SIM800_RESET_PIN 7
 
 // define DEBUG to one serial UART to enable debug information output
-#define DEBUG Serial
+//#define DEBUG Serial, DEBUG already defined in board
 
 typedef enum {
     HTTP_DISABLED = 0,
@@ -48,17 +51,17 @@ typedef struct {
 // check if there is available serial data
 bool available();
 char buffer[256];
-byte httpState = HTTP_DISABLED;
+uint8_t httpState = HTTP_DISABLED;
 
-byte checkbuffer(const char* expected1, const char* expected2 = 0, unsigned int timeout = 2000);
+uint8_t checkbuffer(const char* expected1, const char* expected2 = 0, unsigned int timeout = 2000);
 void purgeSerial();
-byte m_bytesRecv;
+uint8_t m_uint8_tsRecv;
 uint32_t m_checkTimer;
 
 // initialize the module
 bool init();
 // setup network
-byte setup(const char* apn);
+uint8_t setup(const char* apn);
 // get network operator name
 bool getOperatorName();
 // check for incoming SMS
@@ -72,19 +75,25 @@ bool httpInit();
 // terminate HTTP connection
 void httpUninit();
 // connect to HTTP server
-bool httpConnect(const char* url, const char* args = 0);
+
+//Default value if not set in function call, only works in C++
+//bool httpConnect(const char* url, const char* args = 0);
+bool httpConnect(const char* url, const char* args);
 // check if HTTP connection is established
 // return 0 for in progress, 1 for success, 2 for error
-byte httpIsConnected();
+uint8_t httpIsConnected();
 // read data from HTTP connection
 void httpRead();
 // check if HTTP connection is established
-// return 0 for in progress, -1 for error, bytes of http payload on success
+// return 0 for in progress, -1 for error, uint8_ts of http payload on success
 int httpIsRead();
 // send AT command and check for expected response
-byte sendCommand(const char* cmd, unsigned int timeout = 2000, const char* expected = 0);
+//uint8_t sendCommand(const char* cmd, unsigned int timeout = 2000, const char* expected = 0);
+uint8_t sendCommand(const char* cmd, unsigned int timeout, const char*);
 // send AT command and check for two possible responses
-byte sendCommand(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout = 2000);
+//uint8_t sendCommand(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout = 2000);
+//Plain C do not allow function overloads (two distinct implementations of the same function name)
+uint8_t sendCommandTimeout(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout);
 // toggle low-power mode
 bool sleep(bool enabled);
 
