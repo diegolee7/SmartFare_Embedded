@@ -126,7 +126,7 @@ int main(void)
 	    DEBUGOUT("Reader 2 ");
 	    PCD_DumpVersionToSerial(mfrc2);	// Show details of PCD - MFRC522 Card Reader details
 
-	    //auxiliar variable to search an userId in the usersBuffer
+	    //auxiliary variable to search an userId in the usersBuffer
 	    int userIndex;
 
 	/* Set pin back to GPIO (on some boards may have been changed to something
