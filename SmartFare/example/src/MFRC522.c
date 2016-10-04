@@ -13,24 +13,30 @@
 	  * Set up the data structures of an MFRC522 ADT object and return a pointer
 	  */
 	 MFRC522Ptr_t MFRC522_Init(){
-		 //allocate structs
-		static struct MFRC522_T mfrc_struct;
-		static Chip_SSP_DATA_SETUP_T data_setup;
+		 //allocate instance struct array
+		static struct MFRC522_T mfrc_Instances[MFRC_MAX_INSTANCES];
+		static Chip_SSP_DATA_SETUP_T dataSetup_Instances[MFRC_MAX_INSTANCES];
+//		struct MFRC522_T mfrc_struct;
+//		Chip_SSP_DATA_SETUP_T data_setup;
 
 		 //initalizae fields
 		 uint16_t i;
 		 for (i = 0; i < BUFFER_SIZE; i++){
-			 mfrc_struct.Rx_Buf[i]=0;
-			 mfrc_struct.Tx_Buf[i]=0;
+			 mfrc_Instances[MFRC_Instance_Counter].Rx_Buf[i]=0;
+			 mfrc_Instances[MFRC_Instance_Counter].Tx_Buf[i]=0;
 		 }
 
 		 //assign values
-		 data_setup.length=BUFFER_SIZE;
-		 data_setup.rx_data=mfrc_struct.Rx_Buf;
-		 data_setup.tx_data=mfrc_struct.Tx_Buf;
-		 mfrc_struct.data_Setup=data_setup;
+		 dataSetup_Instances[MFRC_Instance_Counter].length=BUFFER_SIZE;
+		 dataSetup_Instances[MFRC_Instance_Counter].rx_data=mfrc_Instances[MFRC_Instance_Counter].Rx_Buf;
+		 dataSetup_Instances[MFRC_Instance_Counter].tx_data=mfrc_Instances[MFRC_Instance_Counter].Tx_Buf;
+		 mfrc_Instances[MFRC_Instance_Counter].data_Setup=dataSetup_Instances[MFRC_Instance_Counter];
 
-		 return &mfrc_struct;
+
+		 //update instance counter
+		 MFRC_Instance_Counter++;
+
+		 return &(mfrc_Instances[MFRC_Instance_Counter-1]);
 	 } // End constructor
 
 

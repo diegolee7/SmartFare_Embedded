@@ -2,7 +2,8 @@
  * LICENSE
  * Main file ,incremental functionalities added
  * 1- Show message in the OM13082 shield LCD when a button is pressed
- *
+ * 2- Use one RFID on SSP1
+ * 3- Use two  RFID readers on SSP0
  */
 /*****************************************************************************
  * LPCXpresso4337 project includes
@@ -106,8 +107,24 @@ int main(void)
 	    // GPIO1[10]= P2_9
 	    mfrc1->_resetPowerDownPin.port = 1;
 	    mfrc1->_resetPowerDownPin.pin = 10;
-	    PCD_Init(mfrc1,LPC_SSP1);
+	    PCD_Init(mfrc1,LPC_SSP0);
+	    DEBUGOUT("Reader 1 ");
 	    PCD_DumpVersionToSerial(mfrc1);	// Show details of PCD - MFRC522 Card Reader details
+
+	    //Repeat config for RFID reader 2
+	    MFRC522Ptr_t mfrc2=MFRC522_Init();
+	    //Define the pins to use as CS(SS or SSEL)  an RST
+		Chip_SCU_PinMuxSet (0x1, 0,  (SCU_PINIO_FAST | SCU_MODE_FUNC0)); //Set as GPIO
+		Chip_SCU_PinMuxSet (0x5, 02,  (SCU_PINIO_FAST | SCU_MODE_FUNC4)); //Set as GPIO
+	    // GPIO1[0]= P1_07
+	    mfrc2->_chipSelectPin.port = 1;
+	    mfrc2->_chipSelectPin.pin = 0;
+	    // GPIO5[02]= P2_02
+	    mfrc2->_resetPowerDownPin.port = 5;
+	    mfrc2->_resetPowerDownPin.pin = 2;
+	    PCD_Init(mfrc2,LPC_SSP0);
+	    DEBUGOUT("Reader 2 ");
+	    PCD_DumpVersionToSerial(mfrc2);	// Show details of PCD - MFRC522 Card Reader details
 
 	    //auxiliar variable to search an userId in the usersBuffer
 	    int userIndex;
@@ -176,7 +193,7 @@ int main(void)
 		}
 		else{
 			//user is already onboard
-			change_lcd_message(USTATUS_UNAUTHORIZED);
+			// change_lcd_message(USTATUS_UNAUTHORIZED);
 		}
 
 
@@ -188,10 +205,10 @@ int main(void)
 		else{
 			//check for minumim balance
 			if (last_balance < min_balance) {
-				change_lcd_message(USTATUS_INSUF_BALANCE);
+				// change_lcd_message(USTATUS_INSUF_BALANCE);
 			}
 			else{
-				change_lcd_message(USTATUS_AUTHORIZED);
+				// change_lcd_message(USTATUS_AUTHORIZED);
 			}
 		}
 		__WFI();
