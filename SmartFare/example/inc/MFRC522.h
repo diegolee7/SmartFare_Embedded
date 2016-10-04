@@ -79,9 +79,14 @@ extern "C" {
 #include "board.h"
 #include <stdint.h>
 #include <string.h>	//some functions need NULL to be defined
+#include "delay.h"
 #define BUFFER_SIZE 1 //send only one byte per transfer, see WriteRegister functions
 #define MFRC522_BIT_RATE 4000000 //Defined as 4MHz in the original library
-#include "delay.h"
+
+// ADT object allocation variables
+#define MFRC_MAX_INSTANCES 2
+static int MFRC_Instance_Counter = 0;
+
 
 static const uint8_t FIFO_SIZE = 64;		// Size of the MFRC522 FIFO
 
@@ -277,6 +282,7 @@ static const uint8_t FIFO_SIZE = 64;		// Size of the MFRC522 FIFO
 	 struct MFRC522_T{
 		 Uid uid;	// Used by PICC_ReadCardSerial().
 		 //Variables used in the SSP(SPI) peripheral of the board
+		 LPC_SSP_T *pSSP;	//Select SSP0 or SSP1
 		 io_port_t _chipSelectPin;// = {1, 8}; // As default example use GPIO1[8]= P1_5
 		 io_port_t _resetPowerDownPin;// = {3, 4}; //As default example use GPIO3[4]= P6_5
 		 Chip_SSP_DATA_SETUP_T data_Setup;
@@ -306,7 +312,7 @@ static const uint8_t FIFO_SIZE = 64;		// Size of the MFRC522 FIFO
 	 	/////////////////////////////////////////////////////////////////////////////////////
 	 	// Functions for manipulating the MFRC522
 	 	/////////////////////////////////////////////////////////////////////////////////////
-	 	void PCD_Init(MFRC522Ptr_t mfrc);
+	 	void PCD_Init(MFRC522Ptr_t mfrc, LPC_SSP_T *pSSP);
 	 	void PCD_Reset(MFRC522Ptr_t mfrc);
 	 	void PCD_AntennaOn(MFRC522Ptr_t mfrc);
 	 	void PCD_AntennaOff(MFRC522Ptr_t mfrc);
