@@ -14,6 +14,18 @@
 
 #include "SIM800.h"
 
+
+/*****************************************************************************
+ * Private types/enumerations/variables
+ ****************************************************************************/
+/* Transmit and receive ring buffers */
+STATIC RINGBUFF_T SIM800_txring, SIM800_rxring;
+/* Transmit and receive buffers */
+static uint8_t SIM800_rxbuff[SIM800_UART_RRB_SIZE], SIM800_txbuff[SIM800_UART_SRB_SIZE];
+static char buffer[256];
+static uint8_t httpState = HTTP_DISABLED;
+
+
 //Ver como faz o serial na placa
 //SoftwareSerial SIM_SERIAL(10, 11); // RX, TX
 
@@ -61,8 +73,17 @@ void setUptUART(int baudRate){
 	NVIC_SetPriority(SIM800_UARTx_IRQn, 1);
 	NVIC_EnableIRQ(SIM800_UARTx_IRQn);
 
+	/*Used to get the systick currente value, used to calculate the timeouts */
+	SysTick_Init();
 }
 
+/**
+ * See detailed description in SIM800.h
+ */
+void UART_Print(const char *str){
+
+	Chip_UART_SendRB(SIM800_LPC_UARTX, &SIM800_txring, str, sizeof(str) - 1);
+}
 
 bool init()
 {
@@ -121,9 +142,9 @@ uint8_t setup(const char* apn)
     if (!sendCommand("AT+SAPBR=3,1,\"Contype\",\"GPRS\"",2000,0))
         return 3;
 
-    DEBUGOUT("AT+SAPBR=3,1,\"APN\",\"");
-    DEBUGOUT(apn);
-    DEBUGOUT('\"\n');
+    UART_Print("AT+SAPBR=3,1,\"APN\",\"");
+    UART_Print(apn);
+    UART_Print("\"\r\n");
     if (!sendCommand(0,2000,0))
         return 4;
 
@@ -225,21 +246,22 @@ bool httpConnect(const char* url, const char* args)
 	//args=0; //Default value if not set in function call, only works in C++
 
     // Sets url
-    DEBUGOUT("AT+HTTPPARA=\"URL\",\"");
-    DEBUGOUT(url);
+    UART_Print("AT+HTTPPARA=\"URL\",\"");
+    UART_Print(url);
     if (args) {
-        DEBUGOUT("?");
-        DEBUGOUT(args);
+        UART_Print("?");
+        UART_Print(args);
     }
 
-    DEBUGOUT('\"\n');
+    UART_Print("\"\r\n");
     if (sendCommand(0,2000,0))
     {
         // Starts GET action
-        DEBUGOUT("AT+HTTPACTION=0\n");
+        UART_Print("AT+HTTPACTION=0\r\n");
         httpState = HTTP_CONNECTING;
         m_uint8_tsRecv = 0;
-        m_checkTimer = millis();
+//        m_checkTimer = millis();
+        m_checkTimer= SysTick->VAL;
     } else {
         httpState = HTTP_ERROR;
     }
@@ -258,10 +280,10 @@ uint8_t httpIsConnected()
 }
 void httpRead()
 {
-    DEBUGOUT("AT+HTTPREAD\n");
+    UART_Print("AT+HTTPREAD\r\n");
     httpState = HTTP_READING;
     m_uint8_tsRecv = 0;
-    m_checkTimer = millis();
+    m_checkTimer = SysTick->VAL;// millis();
 }
 // check if HTTP connection is established
 // return 0 for in progress, -1 for error, number of http payload uint8_ts on success
@@ -287,10 +309,10 @@ uint8_t sendCommand(const char* cmd, unsigned int timeout, const char* expected)
 {
     if (cmd) {
         purgeSerial();
-        DEBUGOUT(cmd);
-        DEBUGOUT("\n");
+        UART_Print(cmd);
+        UART_Print("\r\n");
     }
-    uint32_t t = millis();
+    uint32_t t = SysTick->VAL;//millis();
     uint8_t n = 0;
     do {
         if (RingBuffer_IsEmpty(&SIM800_rxring) == 0) {
@@ -308,17 +330,17 @@ uint8_t sendCommand(const char* cmd, unsigned int timeout, const char* expected)
                 return n;
             }
         }
-    } while (millis() - t < timeout);
+    } while (SysTick->VAL - t < timeout);//while (millis() - t < timeout);
     return 0;
 }
 uint8_t sendCommand2Expected(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout)
 {
     if (cmd) {
         purgeSerial();
-        DEBUGOUT(cmd);
-        DEBUGOUT("\n");
+        UART_Print(cmd);
+        UART_Print("\r\n");
     }
-    uint32_t t = millis();
+    uint32_t t = SysTick->VAL;//millis();
     uint8_t n = 0;
     do {
         if (RingBuffer_IsEmpty(&SIM800_rxring) == 0) {
@@ -339,7 +361,7 @@ uint8_t sendCommand2Expected(const char* cmd, const char* expected1, const char*
                 return 2;
             }
         }
-    } while (millis() - t < timeout);
+    } while (SysTick->VAL - t < timeout);//while (millis() - t < timeout);
     return 0;
 }
 
@@ -363,7 +385,7 @@ uint8_t checkbuffer(const char* expected1, const char* expected2, unsigned int t
             return 2;
         }
     }
-    return (millis() - m_checkTimer < timeout) ? 0 : 3;
+    return (SysTick->VAL - m_checkTimer < timeout) ? 0 : 3;//(millis() - m_checkTimer < timeout) ? 0 : 3;
 }
 
 void purgeSerial()

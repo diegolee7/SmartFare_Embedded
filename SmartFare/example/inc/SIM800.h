@@ -24,6 +24,9 @@
 #include <stdlib.h>
 #include "delay.h"
 
+//min redefinition
+#define min(a,b) ((a)<(b)?(a):(b))
+
 // Pointers to the UART peripheral, interrupt and handler, defined in the setupUART().
 #define SIM800_LPC_UARTX       LPC_USART3
 #define SIM800_UARTx_IRQn      USART3_IRQn
@@ -37,15 +40,10 @@
 #define SIM800_RESET_PORT	3
 #define SIM800_RESET_PIN 	5
 
-/* Transmit and receive ring buffers */
-STATIC RINGBUFF_T SIM800_txring, SIM800_rxring;
-
-/* Transmit and receive buffers */
-static uint8_t SIM800_rxbuff[SIM800_UART_RRB_SIZE], SIM800_txbuff[SIM800_UART_SRB_SIZE];
 
 
 // define DEBUG to one serial UART to enable debug information output
-//#define DEBUG Serial, DEBUG already defined in board
+//#define DEBUG Serial, DEBUG already defined in board.c
 
 typedef enum {
     HTTP_DISABLED = 0,
@@ -68,8 +66,7 @@ typedef struct {
 
 // check if there is available serial data
 bool available();
-char buffer[256];
-uint8_t httpState = HTTP_DISABLED;
+
 
 
 /**
@@ -77,6 +74,12 @@ uint8_t httpState = HTTP_DISABLED;
  */
 void setUptUART(int baudRate);
 
+
+/**
+ * Util function to use instead of Serial.print
+ * Uses pre-defined UART and ring buffer to output data
+ */
+void UART_Print(const char *str);
 
 //uint 8_t checkbuffer(const char* expected1, const char* expected2 = 0, unsigned int timeout = 2000);
 uint8_t checkbuffer(const char* expected1, const char* expected2, unsigned int timeout);

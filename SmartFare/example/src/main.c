@@ -22,11 +22,15 @@
 #include "SIM800.h"
 #include "RFIDUtils.h"
 
+/**********************************
+ *  Extra functions defined in the main.c file
+ **********************************/
+int getUserByID(unsigned int userID);
+void addNewUser(unsigned int userID);
+
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-
-#define  USER_BUFFER_SIZE  10
 
 #if defined(BOARD_NXP_LPCXPRESSO_4337)
 
