@@ -20,11 +20,29 @@
 //Adjustments to work with the NXP LPCExpresso4337 board
 #include "board.h"
 #include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
+#include "delay.h"
 
+// Pointers to the UART peripheral, interrupt and handler, defined in the setupUART().
+#define SIM800_LPC_UARTX       LPC_USART3
+#define SIM800_UARTx_IRQn      USART3_IRQn
+#define SIM_800_UARTx_IRQHandler UART3_IRQHandler
 
+/* Transmit and receive ring buffer sizes */
+#define SIM800_UART_SRB_SIZE 128	/* Send */
+#define SIM800_UART_RRB_SIZE 32	/* Receive */
 
 // change this to the pin connect with SIM800 reset pin
-#define SIM800_RESET_PIN 7
+#define SIM800_RESET_PORT	3
+#define SIM800_RESET_PIN 	5
+
+/* Transmit and receive ring buffers */
+STATIC RINGBUFF_T SIM800_txring, SIM800_rxring;
+
+/* Transmit and receive buffers */
+static uint8_t SIM800_rxbuff[SIM800_UART_RRB_SIZE], SIM800_txbuff[SIM800_UART_SRB_SIZE];
+
 
 // define DEBUG to one serial UART to enable debug information output
 //#define DEBUG Serial, DEBUG already defined in board
@@ -53,7 +71,15 @@ bool available();
 char buffer[256];
 uint8_t httpState = HTTP_DISABLED;
 
-uint8_t checkbuffer(const char* expected1, const char* expected2 = 0, unsigned int timeout = 2000);
+
+/**
+ * Configure the UART pins and operation mode
+ */
+void setUptUART(int baudRate);
+
+
+//uint 8_t checkbuffer(const char* expected1, const char* expected2 = 0, unsigned int timeout = 2000);
+uint8_t checkbuffer(const char* expected1, const char* expected2, unsigned int timeout);
 void purgeSerial();
 uint8_t m_uint8_tsRecv;
 uint32_t m_checkTimer;
@@ -89,11 +115,11 @@ void httpRead();
 int httpIsRead();
 // send AT command and check for expected response
 //uint8_t sendCommand(const char* cmd, unsigned int timeout = 2000, const char* expected = 0);
-uint8_t sendCommand(const char* cmd, unsigned int timeout, const char*);
+uint8_t sendCommand(const char* cmd, unsigned int timeout, const char* expected);
 // send AT command and check for two possible responses
 //uint8_t sendCommand(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout = 2000);
 //Plain C do not allow function overloads (two distinct implementations of the same function name)
-uint8_t sendCommandTimeout(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout);
+uint8_t sendCommand2Expected(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout);
 // toggle low-power mode
 bool sleep(bool enabled);
 

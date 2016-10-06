@@ -18,9 +18,9 @@
  * Private variables
  ****************************************/
 
-//buffer used to store the read end write data, each block have 16 bytes, buffer must have 18 slots, see MIFARE_Read()
-static uint8_t buffer[18];
-static uint8_t size = sizeof(buffer);
+//auxBuffer used to store the read end write data, each block have 16 bytes, auxBuffer must have 18 slots, see MIFARE_Read()
+static uint8_t auxBuffer[18];
+static uint8_t size = sizeof(auxBuffer);
 
 //return status from MFRC522 functions
 static StatusCode status;
@@ -53,7 +53,7 @@ static int readCardBlock(MFRC522Ptr_t mfrc522 ,uint8_t sector, uint8_t blockAddr
     }
 
     // Read data from the block
-    status = (StatusCode) MIFARE_Read(mfrc522, blockAddr, buffer, &size);
+    status = (StatusCode) MIFARE_Read(mfrc522, blockAddr, auxBuffer, &size);
     if (status != STATUS_OK) {
         DEBUGOUT("MIFARE_Read() failed: ");
         DEBUGOUT(GetStatusCodeName(status));
@@ -88,7 +88,7 @@ static int writeCardBlock(MFRC522Ptr_t mfrc522 ,uint8_t sector, uint8_t blockAdd
     }
 
     // Write data from the block, always write 16 bytes
-    status = (StatusCode) MIFARE_Write(mfrc522, blockAddr, buffer, 16);
+    status = (StatusCode) MIFARE_Write(mfrc522, blockAddr, auxBuffer, 16);
     if (status != STATUS_OK) {
         DEBUGOUT("MIFARE_Write() failed: ");
         DEBUGOUT(GetStatusCodeName(status));
@@ -116,7 +116,7 @@ int readCardBalance(MFRC522Ptr_t mfrc522 ){
 
     if(readStatus == 0){
     		//convert the balance bytes to an integer, byte[0] is the MSB
-            balance= (int)buffer[3] | (int)(buffer[2]<<8) | (int)(buffer[1]<<16) | (int)(buffer[0]<<24);
+            balance= (int)auxBuffer[3] | (int)(auxBuffer[2]<<8) | (int)(auxBuffer[1]<<16) | (int)(auxBuffer[0]<<24);
     }
     else{
         balance= -999;
@@ -133,14 +133,14 @@ int readCardBalance(MFRC522Ptr_t mfrc522 ){
  */
 int writeCardBalance(MFRC522Ptr_t mfrc522, int newBalance){
 
-	//set the 16 bytes buffer, buffer[0] is the MSB
-	buffer[0] = newBalance >> 24;
-	buffer[1] = newBalance >> 16;
-	buffer[2] = newBalance >> 8;
-	buffer[3] = newBalance & 0x000000FF;
+	//set the 16 bytes auxBuffer, auxBuffer[0] is the MSB
+	auxBuffer[0] = newBalance >> 24;
+	auxBuffer[1] = newBalance >> 16;
+	auxBuffer[2] = newBalance >> 8;
+	auxBuffer[3] = newBalance & 0x000000FF;
 	int i;
-	for (i = 4; i<BUFFER_SIZE; i++){
-		buffer[i] = 0xBB;
+	for (i = 4; i<size; i++){
+		auxBuffer[i] = 0xBB;
 	}
 
     int writeStatus = writeCardBlock(mfrc522, 1, 4);
