@@ -30,7 +30,7 @@
 // Pointers to the UART peripheral, interrupt and handler, defined in the setupUART().
 #define SIM800_LPC_UARTX       LPC_USART3
 #define SIM800_UARTx_IRQn      USART3_IRQn
-#define SIM_800_UARTx_IRQHandler UART3_IRQHandler
+#define UARTx_IRQHandler       UART3_IRQHandler
 
 /* Transmit and receive ring buffer sizes */
 #define SIM800_UART_SRB_SIZE 128	/* Send */
@@ -40,7 +40,9 @@
 #define SIM800_RESET_PORT	3
 #define SIM800_RESET_PIN 	5
 
+#define TIM_APN "timbrasil.br"
 
+#define MAX_ATTEMPTS 30
 
 // define DEBUG to one serial UART to enable debug information output
 //#define DEBUG Serial, DEBUG already defined in board.c
@@ -67,7 +69,9 @@ typedef struct {
 // check if there is available serial data
 bool available();
 
-
+static char bufferSIM800[256];
+uint8_t m_uint8_tsRecv;
+uint32_t m_checkTimer;
 
 /**
  * Configure the UART pins and operation mode
@@ -84,17 +88,15 @@ void UART_Print(const char *str);
 //uint 8_t checkbuffer(const char* expected1, const char* expected2 = 0, unsigned int timeout = 2000);
 uint8_t checkbuffer(const char* expected1, const char* expected2, unsigned int timeout);
 void purgeSerial();
-uint8_t m_uint8_tsRecv;
-uint32_t m_checkTimer;
+
 
 // initialize the module
-bool init();
+bool initSIM800();
 // setup network
-uint8_t setup(const char* apn);
+uint8_t setupSIM800();
 // get network operator name
 bool getOperatorName();
-// check for incoming SMS
-bool checkSMS();
+
 // get signal quality level (in dB)
 int getSignalQuality();
 // get GSM location and network time

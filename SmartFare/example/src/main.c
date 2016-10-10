@@ -78,6 +78,24 @@ void GINT0_IRQHandler(void)
 	interrupt_flag = 1;
 }
 
+void setupGSM(){
+	uint8_t ret;
+	for(uint8_t i = 0; i < MAX_ATTEMPTS; i++){
+	    DEBUGOUT("\nInitializing SIM800");
+	    initSIM800();
+	    DEBUGOUT("\nSetup SIM800");
+	    ret = setupSIM800();
+	    if(ret == 0){
+	    	break;
+	    }
+	    DEBUGOUT("\nError: ");
+	    //char string[2];
+        //sprintf(string,"%02X",(char)ret);
+	    DEBUGOUT("%d",ret);
+	    DEBUGOUT("%s",bufferSIM800);
+	}
+	DEBUGOUT("\nSetup Successful");
+}
 
 /**
  * @brief	Main program body
@@ -96,7 +114,7 @@ int main(void)
 	//init shield lcd, and SSP interface pins
 	board_lcd_init();//
 
-
+    setupGSM();
 	/*****************************************************************************
 	 *Set up RFID
 	 ****************************************************************************/
@@ -148,7 +166,6 @@ int main(void)
 	/* Enable Group GPIO interrupt 0 */
 	NVIC_EnableIRQ(GINT0_IRQn);
 
-
 	/* Spin in a loop here.  All the work is done in ISR. */
 	while (1) {
 		if (interrupt_flag) {
@@ -188,7 +205,7 @@ int main(void)
 
 		//convert the uid bytes to an integer, byte[0] is the MSB
 		last_user_ID= (int) mfrc1->uid.uidByte[3] | (int) mfrc1->uid.uidByte[2] <<8 | (int) mfrc1->uid.uidByte[1]<<16 | (int) mfrc1->uid.uidByte[0]<<24;
-		
+
 		//search for the uID in the usersBuffer
 		userIndex = getUserByID(last_user_ID);
 		if(userIndex == -1){

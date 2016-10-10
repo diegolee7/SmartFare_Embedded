@@ -22,7 +22,7 @@
 STATIC RINGBUFF_T SIM800_txring, SIM800_rxring;
 /* Transmit and receive buffers */
 static uint8_t SIM800_rxbuff[SIM800_UART_RRB_SIZE], SIM800_txbuff[SIM800_UART_SRB_SIZE];
-static char buffer[256];
+
 static uint8_t httpState = HTTP_DISABLED;
 
 
@@ -34,7 +34,7 @@ static uint8_t httpState = HTTP_DISABLED;
  * @brief	UART interrupt handler using ring buffers
  * @return	Nothing
  */
-void SIM800_UARTx_IRQHandler(void)
+void UARTx_IRQHandler(void)
 {
 	/* Want to handle any errors? Do it here. */
 
@@ -73,7 +73,7 @@ void setUptUART(int baudRate){
 	NVIC_SetPriority(SIM800_UARTx_IRQn, 1);
 	NVIC_EnableIRQ(SIM800_UARTx_IRQn);
 
-	/*Used to get the systick currente value, used to calculate the timeouts */
+	/*Used to get the systick current value, used to calculate the timeouts */
 	SysTick_Init();
 }
 
@@ -81,11 +81,11 @@ void setUptUART(int baudRate){
  * See detailed description in SIM800.h
  */
 void UART_Print(const char *str){
-
-	Chip_UART_SendRB(SIM800_LPC_UARTX, &SIM800_txring, str, sizeof(str) - 1);
+	int size = strlen(str);
+	Chip_UART_SendRB(SIM800_LPC_UARTX, &SIM800_txring, str, strlen(str));
 }
 
-bool init()
+bool initSIM800()
 {
     //SIM_SERIAL.begin(57600);
 	setUptUART(57600);
@@ -116,12 +116,17 @@ bool init()
     return false;
 }
 
-uint8_t setup(const char* apn)
+uint8_t setupSIM800()
 {
     bool success = false;
     for (uint8_t n = 0; n < 30; n++) {
-        if (sendCommand("AT+CREG?", 2000,0)) {
-            char *p = strstr(buffer, "0,");
+    	DEBUGOUT("\nTrying to setup, attempt: %d",n);
+
+        uint8_t ret = sendCommand("AT+CREG?", 2000,0);
+        DEBUGOUT("\nResposta do AT+CREG?: %s",bufferSIM800);
+
+        if (ret) {
+            char *p = strstr(bufferSIM800, "0,");
             if (p) {
                 char mode = *(p + 2);
                 if (mode == '1' || mode == '5') {
@@ -136,14 +141,14 @@ uint8_t setup(const char* apn)
     if (!success)
         return 1;
 
-    if (!sendCommand("AT+CGATT?",2000,0))
+    if (!sendCommand("AT+CGATT?", 2000, 0))
         return 2;
 
-    if (!sendCommand("AT+SAPBR=3,1,\"Contype\",\"GPRS\"",2000,0))
+    if (!sendCommand("AT+SAPBR=3,1,\"Contype\",\"GPRS\"", 2000, 0))
         return 3;
 
     UART_Print("AT+SAPBR=3,1,\"APN\",\"");
-    UART_Print(apn);
+    UART_Print(TIM_APN);
     UART_Print("\"\r\n");
     if (!sendCommand(0,2000,0))
         return 4;
@@ -163,34 +168,22 @@ bool getOperatorName()
 {
     // display operator name
     if (sendCommand2Expected("AT+COPS?", "OK\r", "ERROR\r",2000) == 1) {
-        char *p = strstr(buffer, ",\"");
+        char *p = strstr(bufferSIM800, ",\"");
         if (p) {
             p += 2;
             char *s = strchr(p, '\"');
             if (s) *s = 0;
-            strcpy(buffer, p);
+            strcpy(bufferSIM800, p);
             return true;
         }
     }
     return false;
 }
-bool checkSMS()
-{
-    if (sendCommand2Expected("AT+CMGR=1", "+CMGR:", "ERROR",2000) == 1) {
-        // reads the data of the SMS
-        sendCommand(0, 100, "\r\n");
-        if (sendCommand(0,2000,0)) {
-            // remove the SMS
-            sendCommand("AT+CMGD=1",2000,0);
-            return true;
-        }
-    }
-    return false;
-}
+
 int getSignalQuality()
 {
     sendCommand("AT+CSQ",2000,0);
-    char *p = strstr(buffer, "CSQ: ");
+    char *p = strstr(bufferSIM800, "CSQ: ");
     if (p) {
         int n = atoi(p + 2);
         if (n == 99 || n == -1) return 0;
@@ -205,7 +198,7 @@ bool getLocation(GSM_LOCATION* loc)
     if (sendCommand("AT+CIPGSMLOC=1,1", 10000,0))
         do {
             char *p;
-            if (!(p = strchr(buffer, ':'))) break;
+            if (!(p = strchr(bufferSIM800, ':'))) break;
             if (!(p = strchr(p, ','))) break;
             loc->lon = atof(++p);
             if (!(p = strchr(p, ','))) break;
@@ -253,7 +246,7 @@ bool httpConnect(const char* url, const char* args)
         UART_Print(args);
     }
 
-    UART_Print("\"\r\n");
+    UART_Print("\r\n");
     if (sendCommand(0,2000,0))
     {
         // Starts GET action
@@ -294,10 +287,10 @@ int httpIsRead()
         m_uint8_tsRecv = 0;
         // read the rest data
         sendCommand(0, 100, "\r\n");
-        int uint8_ts = atoi(buffer);
+        int uint8_ts = atoi(bufferSIM800);
         sendCommand(0,2000,0);
-        uint8_ts = min(uint8_ts, sizeof(buffer) - 1);
-        buffer[uint8_ts] = 0;
+        uint8_ts = min(uint8_ts, sizeof(bufferSIM800) - 1);
+        bufferSIM800[uint8_ts] = 0;
         return uint8_ts;
     } else if (ret >= 2) {
         httpState = HTTP_ERROR;
@@ -305,86 +298,88 @@ int httpIsRead()
     }
     return 0;
 }
-uint8_t sendCommand(const char* cmd, unsigned int timeout, const char* expected)
+uint8_t sendCommand(const char* command, unsigned int timeout, const char* expected)
 {
-    if (cmd) {
+    if (command) {
         purgeSerial();
-        UART_Print(cmd);
+        UART_Print(command);
         UART_Print("\r\n");
+        DEBUGOUT("\nSending command: ");
+        DEBUGOUT("%s",command);
     }
     uint32_t t = SysTick->VAL;//millis();
     uint8_t n = 0;
+    uint8_t bytesRead = 0;
+
     do {
-        if (RingBuffer_IsEmpty(&SIM800_rxring) == 0) {
-//            char c = SIM_SERIAL.read();
+        do {
         	char c;
-        	Chip_UART_ReadRB(SIM800_LPC_UARTX, &SIM800_rxring, &c, 1);
-            if (n >= sizeof(buffer) - 1) {
+        	bytesRead = Chip_UART_ReadRB(SIM800_LPC_UARTX, &SIM800_rxring, &c, 1);
+            if (n >= sizeof(bufferSIM800) - 1) {
                 // buffer full, discard first half
-                n = sizeof(buffer) / 2 - 1;
-                memcpy(buffer, buffer + sizeof(buffer) / 2, n);
+                n = sizeof(bufferSIM800) / 2 - 1;
+                memcpy(bufferSIM800, bufferSIM800 + sizeof(bufferSIM800) / 2, n);
             }
-            buffer[n++] = c;
-            buffer[n] = 0;
-            if (strstr(buffer, expected ? expected : "OK\r")) {
+            bufferSIM800[n++] = c;
+            bufferSIM800[n] = 0;
+            if (strstr(bufferSIM800, expected ? expected : "OK\r")) {
                 return n;
             }
-        }
+        } while (bytesRead > 0);
     } while (SysTick->VAL - t < timeout);//while (millis() - t < timeout);
     return 0;
 }
-uint8_t sendCommand2Expected(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout)
+uint8_t sendCommand2Expected(const char* command, const char* expected1, const char* expected2, unsigned int timeout)
 {
-    if (cmd) {
+    if (command) {
         purgeSerial();
-        UART_Print(cmd);
+        UART_Print(command);
         UART_Print("\r\n");
     }
     uint32_t t = SysTick->VAL;//millis();
     uint8_t n = 0;
     do {
-        if (RingBuffer_IsEmpty(&SIM800_rxring) == 0) {
-//            char c = SIM_SERIAL.read();
-        	char c;
-        	Chip_UART_ReadRB(SIM800_LPC_UARTX, &SIM800_rxring, &c, 1);
-            if (n >= sizeof(buffer) - 1) {
+        do {
+            char c;
+            bytesRead = Chip_UART_ReadRB(SIM800_LPC_UARTX, &SIM800_rxring, &c, 1);
+            if (n >= sizeof(bufferSIM800) - 1) {
                 // buffer full, discard first half
-                n = sizeof(buffer) / 2 - 1;
-                memcpy(buffer, buffer + sizeof(buffer) / 2, n);
+                n = sizeof(bufferSIM800) / 2 - 1;
+                memcpy(bufferSIM800, bufferSIM800 + sizeof(bufferSIM800) / 2, n);
             }
-            buffer[n++] = c;
-            buffer[n] = 0;
-            if (strstr(buffer, expected1)) {
+            bufferSIM800[n++] = c;
+            bufferSIM800[n] = 0;
+            if (strstr(bufferSIM800, expected1)) {
                 return 1;
             }
-            if (strstr(buffer, expected2)) {
+            if (strstr(bufferSIM800, expected2)) {
                 return 2;
             }
-        }
+        } while (bytesRead > 0);
     } while (SysTick->VAL - t < timeout);//while (millis() - t < timeout);
     return 0;
 }
 
+
 uint8_t checkbuffer(const char* expected1, const char* expected2, unsigned int timeout)
 {
-    while (RingBuffer_IsEmpty(&SIM800_rxring) == 0) {
-//        char c = SIM_SERIAL.read();
-    	char c;
-    	Chip_UART_ReadRB(SIM800_LPC_UARTX, &SIM800_rxring, &c, 1);
-        if (m_uint8_tsRecv >= sizeof(buffer) - 1) {
+    do {
+        char c;
+        bytesRead = Chip_UART_ReadRB(SIM800_LPC_UARTX, &SIM800_rxring, &c, 1);
+        if (n >= sizeof(bufferSIM800) - 1) {
             // buffer full, discard first half
-            m_uint8_tsRecv = sizeof(buffer) / 2 - 1;
-            memcpy(buffer, buffer + sizeof(buffer) / 2, m_uint8_tsRecv);
+            n = sizeof(bufferSIM800) / 2 - 1;
+            memcpy(bufferSIM800, bufferSIM800 + sizeof(bufferSIM800) / 2, n);
         }
-        buffer[m_uint8_tsRecv++] = c;
-        buffer[m_uint8_tsRecv] = 0;
-        if (strstr(buffer, expected1)) {
+        bufferSIM800[n++] = c;
+        bufferSIM800[n] = 0;
+        if (strstr(bufferSIM800, expected1)) {
             return 1;
         }
-        if (expected2 && strstr(buffer, expected2)) {
+        if (strstr(bufferSIM800, expected2)) {
             return 2;
         }
-    }
+    } while (bytesRead > 0);
     return (SysTick->VAL - m_checkTimer < timeout) ? 0 : 3;//(millis() - m_checkTimer < timeout) ? 0 : 3;
 }
 
@@ -393,13 +388,17 @@ void purgeSerial()
 //	https://www.arduino.cc/en/Serial/Read
 //	https://www.arduino.cc/en/Serial/Available
 //    while (SIM_SERIAL.available()) SIM_SERIAL.read();
-    RingBuffer_Flush(&SIM800_rxring);
+
+    /* New data will be ignored if data not popped in time */
+    while (Chip_UART_ReadLineStatus(SIM800_LPC_UARTX) & UART_LSR_RDR) {
+        Chip_UART_ReadByte(SIM800_LPC_UARTX);
+    }
 }
 
 bool available()
 {
 //    return SIM_SERIAL.available();
-	if(RingBuffer_IsEmpty(&SIM800_rxring) == 1){
+	if(Chip_UART_ReadLineStatus(SIM800_LPC_UARTX) & UART_LSR_RDR){
 		return false;
 	}
 	else{
