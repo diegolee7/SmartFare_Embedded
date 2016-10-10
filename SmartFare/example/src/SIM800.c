@@ -46,7 +46,7 @@ void UARTx_IRQHandler(void)
 /**
  * See detailed description in SIM800.h
  */
-void setUptUART(int baudRate){
+void setupUART(int baudRate){
 
 	Board_UART_Init(SIM800_LPC_UARTX);
 
@@ -81,29 +81,28 @@ void setUptUART(int baudRate){
  * See detailed description in SIM800.h
  */
 void UART_Print(const char *str){
-	int size = strlen(str);
 	Chip_UART_SendRB(SIM800_LPC_UARTX, &SIM800_txring, str, strlen(str));
 }
 
 bool initSIM800()
 {
     //SIM_SERIAL.begin(57600);
-	setUptUART(57600);
+	setupUART(57600);
 
 //    pinMode(SIM800_RESET_PIN, OUTPUT);
-	Chip_SCU_PinMuxSet(SIM800_RESET_PORT, SIM800_RESET_PIN, (SCU_PINIO_FAST | SCU_MODE_FUNC0));
-	Chip_GPIO_SetPinDIROutput(LPC_GPIO_PORT, SIM800_RESET_PORT, SIM800_RESET_PIN);
+	Chip_SCU_PinMuxSet(SIM800_GPIO_RESET_PORT, SIM800_GPIO_RESET_PIN, (SCU_PINIO_FAST | SCU_MODE_FUNC0));
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO_PORT, SIM800_GPIO_RESET_PORT, SIM800_GPIO_RESET_PIN);
 
 //    digitalWrite(SIM800_RESET_PIN, HIGH);
-    Chip_GPIO_SetPinState(LPC_GPIO_PORT,SIM800_RESET_PORT, SIM800_RESET_PIN, (bool) true);
+    Chip_GPIO_SetPinState(LPC_GPIO_PORT,SIM800_GPIO_RESET_PORT, SIM800_GPIO_RESET_PIN, (bool) true);
 
     delay_ms(10);
 //    digitalWrite(SIM800_RESET_PIN, LOW);
-    Chip_GPIO_SetPinState(LPC_GPIO_PORT,SIM800_RESET_PORT, SIM800_RESET_PIN, (bool) false);
+    Chip_GPIO_SetPinState(LPC_GPIO_PORT,SIM800_GPIO_RESET_PORT, SIM800_GPIO_RESET_PIN, (bool) false);
 
     delay_ms(100);
 //    digitalWrite(SIM800_RESET_PIN, HIGH);
-    Chip_GPIO_SetPinState(LPC_GPIO_PORT,SIM800_RESET_PORT, SIM800_RESET_PIN, (bool) true);
+    Chip_GPIO_SetPinState(LPC_GPIO_PORT,SIM800_GPIO_RESET_PORT, SIM800_GPIO_RESET_PIN, (bool) true);
 
     delay_ms(3000);
     //default timeout is 2000, default, char* expected = 0
@@ -121,9 +120,7 @@ uint8_t setupSIM800()
     bool success = false;
     for (uint8_t n = 0; n < 30; n++) {
     	DEBUGOUT("\nTrying to setup, attempt: %d",n);
-
         uint8_t ret = sendCommand("AT+CREG?", 2000,0);
-        DEBUGOUT("\nResposta do AT+CREG?: %s",bufferSIM800);
 
         if (ret) {
             char *p = strstr(bufferSIM800, "0,");
@@ -136,6 +133,7 @@ uint8_t setupSIM800()
             }
         }
         delay_ms(1000);
+        Board_LED_Toggle(0);
     }
 
     if (!success)
@@ -298,6 +296,7 @@ int httpIsRead()
     }
     return 0;
 }
+
 uint8_t sendCommand(const char* command, unsigned int timeout, const char* expected)
 {
     if (command) {
@@ -311,8 +310,8 @@ uint8_t sendCommand(const char* command, unsigned int timeout, const char* expec
     uint8_t n = 0;
     uint8_t bytesRead = 0;
 
-    do {
-        do {
+    //do {
+        while (available()) {
         	char c;
         	bytesRead = Chip_UART_ReadRB(SIM800_LPC_UARTX, &SIM800_rxring, &c, 1);
             if (n >= sizeof(bufferSIM800) - 1) {
@@ -323,12 +322,15 @@ uint8_t sendCommand(const char* command, unsigned int timeout, const char* expec
             bufferSIM800[n++] = c;
             bufferSIM800[n] = 0;
             if (strstr(bufferSIM800, expected ? expected : "OK\r")) {
+                DEBUGOUT("\nResponse ok: %s",bufferSIM800);
                 return n;
             }
-        } while (bytesRead > 0);
-    } while (SysTick->VAL - t < timeout);//while (millis() - t < timeout);
+        }
+    //} while (SysTick->VAL - t < timeout);//while (millis() - t < timeout);
+    DEBUGOUT("\nResponse: %s",bufferSIM800);
     return 0;
 }
+
 uint8_t sendCommand2Expected(const char* command, const char* expected1, const char* expected2, unsigned int timeout)
 {
     if (command) {
@@ -338,8 +340,9 @@ uint8_t sendCommand2Expected(const char* command, const char* expected1, const c
     }
     uint32_t t = SysTick->VAL;//millis();
     uint8_t n = 0;
-    do {
-        do {
+    uint8_t bytesRead = 0;
+    //do {
+        while (available()) {
             char c;
             bytesRead = Chip_UART_ReadRB(SIM800_LPC_UARTX, &SIM800_rxring, &c, 1);
             if (n >= sizeof(bufferSIM800) - 1) {
@@ -350,20 +353,26 @@ uint8_t sendCommand2Expected(const char* command, const char* expected1, const c
             bufferSIM800[n++] = c;
             bufferSIM800[n] = 0;
             if (strstr(bufferSIM800, expected1)) {
+                DEBUGOUT("\nResponse: %s",bufferSIM800);
                 return 1;
             }
             if (strstr(bufferSIM800, expected2)) {
+                DEBUGOUT("\nResponse: %s",bufferSIM800);
                 return 2;
             }
-        } while (bytesRead > 0);
-    } while (SysTick->VAL - t < timeout);//while (millis() - t < timeout);
+        }
+
+    //} while (SysTick->VAL - t < timeout);//while (millis() - t < timeout);
+    DEBUGOUT("\nResponse: %s",bufferSIM800);
     return 0;
 }
 
 
 uint8_t checkbuffer(const char* expected1, const char* expected2, unsigned int timeout)
 {
-    do {
+    uint8_t n = 0;
+    uint8_t bytesRead = 0;
+    while (available()) {
         char c;
         bytesRead = Chip_UART_ReadRB(SIM800_LPC_UARTX, &SIM800_rxring, &c, 1);
         if (n >= sizeof(bufferSIM800) - 1) {
@@ -379,17 +388,12 @@ uint8_t checkbuffer(const char* expected1, const char* expected2, unsigned int t
         if (strstr(bufferSIM800, expected2)) {
             return 2;
         }
-    } while (bytesRead > 0);
+    }
     return (SysTick->VAL - m_checkTimer < timeout) ? 0 : 3;//(millis() - m_checkTimer < timeout) ? 0 : 3;
 }
 
 void purgeSerial()
 {
-//	https://www.arduino.cc/en/Serial/Read
-//	https://www.arduino.cc/en/Serial/Available
-//    while (SIM_SERIAL.available()) SIM_SERIAL.read();
-
-    /* New data will be ignored if data not popped in time */
     while (Chip_UART_ReadLineStatus(SIM800_LPC_UARTX) & UART_LSR_RDR) {
         Chip_UART_ReadByte(SIM800_LPC_UARTX);
     }

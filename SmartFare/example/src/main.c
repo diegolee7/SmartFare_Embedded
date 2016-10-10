@@ -88,11 +88,8 @@ void setupGSM(){
 	    if(ret == 0){
 	    	break;
 	    }
-	    DEBUGOUT("\nError: ");
-	    //char string[2];
-        //sprintf(string,"%02X",(char)ret);
-	    DEBUGOUT("%d",ret);
-	    DEBUGOUT("%s",bufferSIM800);
+	    DEBUGOUT("\nError: %d", ret);
+	    DEBUGOUT("\nError Buffer: %s",bufferSIM800);
 	}
 	DEBUGOUT("\nSetup Successful");
 }

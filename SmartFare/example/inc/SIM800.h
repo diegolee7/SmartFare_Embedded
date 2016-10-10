@@ -34,11 +34,13 @@
 
 /* Transmit and receive ring buffer sizes */
 #define SIM800_UART_SRB_SIZE 128	/* Send */
-#define SIM800_UART_RRB_SIZE 32	/* Receive */
+#define SIM800_UART_RRB_SIZE 64	/* Receive */
 
 // change this to the pin connect with SIM800 reset pin
-#define SIM800_RESET_PORT	3
-#define SIM800_RESET_PIN 	5
+// #define SIM800_RESET_PORT	3
+// #define SIM800_RESET_PIN 	5
+#define SIM800_GPIO_RESET_PORT   1
+#define SIM800_GPIO_RESET_PIN    15
 
 #define TIM_APN "timbrasil.br"
 
@@ -76,7 +78,7 @@ uint32_t m_checkTimer;
 /**
  * Configure the UART pins and operation mode
  */
-void setUptUART(int baudRate);
+void setupUART(int baudRate);
 
 
 /**
