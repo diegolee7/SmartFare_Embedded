@@ -126,24 +126,24 @@ int main(void)
 	    // GPIO1[10]= P2_9
 	    mfrc1->_resetPowerDownPin.port = 1;
 	    mfrc1->_resetPowerDownPin.pin = 10;
-	    PCD_Init(mfrc1,LPC_SSP0);
+	    PCD_Init(mfrc1,LPC_SSP1);
 	    DEBUGOUT("Reader 1 ");
 	    PCD_DumpVersionToSerial(mfrc1);	// Show details of PCD - MFRC522 Card Reader details
 
-	    //Repeat config for RFID reader 2
-	    MFRC522Ptr_t mfrc2=MFRC522_Init();
-	    //Define the pins to use as CS(SS or SSEL)  an RST
-		Chip_SCU_PinMuxSet (0x1, 0,  (SCU_PINIO_FAST | SCU_MODE_FUNC0)); //Set as GPIO
-		Chip_SCU_PinMuxSet (0x5, 02,  (SCU_PINIO_FAST | SCU_MODE_FUNC4)); //Set as GPIO
-	    // GPIO1[0]= P1_07
-	    mfrc2->_chipSelectPin.port = 1;
-	    mfrc2->_chipSelectPin.pin = 0;
-	    // GPIO5[02]= P2_02
-	    mfrc2->_resetPowerDownPin.port = 5;
-	    mfrc2->_resetPowerDownPin.pin = 2;
-	    PCD_Init(mfrc2,LPC_SSP0);
-	    DEBUGOUT("Reader 2 ");
-	    PCD_DumpVersionToSerial(mfrc2);	// Show details of PCD - MFRC522 Card Reader details
+	 //    //Repeat config for RFID reader 2
+	 //    MFRC522Ptr_t mfrc2=MFRC522_Init();
+	 //    //Define the pins to use as CS(SS or SSEL)  an RST
+		// Chip_SCU_PinMuxSet (0x1, 0,  (SCU_PINIO_FAST | SCU_MODE_FUNC0)); //Set as GPIO
+		// Chip_SCU_PinMuxSet (0x5, 02,  (SCU_PINIO_FAST | SCU_MODE_FUNC4)); //Set as GPIO
+	 //    // GPIO1[0]= P1_07
+	 //    mfrc2->_chipSelectPin.port = 1;
+	 //    mfrc2->_chipSelectPin.pin = 0;
+	 //    // GPIO5[02]= P2_02
+	 //    mfrc2->_resetPowerDownPin.port = 5;
+	 //    mfrc2->_resetPowerDownPin.pin = 2;
+	 //    PCD_Init(mfrc2,LPC_SSP0);
+	 //    DEBUGOUT("Reader 2 ");
+	 //    PCD_DumpVersionToSerial(mfrc2);	// Show details of PCD - MFRC522 Card Reader details
 
 	    //auxiliary variable to search an userId in the usersBuffer
 	    int userIndex;
@@ -162,6 +162,10 @@ int main(void)
 
 	/* Enable Group GPIO interrupt 0 */
 	NVIC_EnableIRQ(GINT0_IRQn);
+
+
+	change_lcd_message(START_MESSAGE);
+	PCD_Init(mfrc1,LPC_SSP1);
 
 	/* Spin in a loop here.  All the work is done in ISR. */
 	while (1) {
@@ -211,7 +215,8 @@ int main(void)
 		}
 		else{
 			//user is already onboard
-			// change_lcd_message(USTATUS_UNAUTHORIZED);
+			change_lcd_message(USTATUS_UNAUTHORIZED);
+			PCD_Init(mfrc1,LPC_SSP1);
 		}
 
 
@@ -223,10 +228,14 @@ int main(void)
 		else{
 			//check for minumim balance
 			if (last_balance < min_balance) {
-				// change_lcd_message(USTATUS_INSUF_BALANCE);
+				change_lcd_message(USTATUS_INSUF_BALANCE);
+				PCD_Init(mfrc1,LPC_SSP1);
 			}
 			else{
-				// change_lcd_message(USTATUS_AUTHORIZED);
+				set_lcd_last_userID(last_user_ID);
+				set_lcd_balance(last_balance);
+				change_lcd_message(USTATUS_AUTHORIZED);
+				PCD_Init(mfrc1,LPC_SSP1);
 			}
 		}
 		__WFI();
@@ -269,5 +278,4 @@ void addNewUser(unsigned int userID){
 		usersBufferIndex = 0;
 	}
 }
-
 

@@ -14,7 +14,16 @@
 
 //Auxiliary variables
 char string[16];
+static unsigned int lcd_last_userID;
+static int lcd_balance;
 
+void set_lcd_last_userID(unsigned int userID){
+	lcd_last_userID = userID;
+}
+
+void set_lcd_balance(int balance){
+	lcd_balance = balance;
+}
 
 void board_lcd_init(){
 	//set up the LCD screen
@@ -31,6 +40,8 @@ void board_lcd_init(){
  */
 void change_lcd_message(int message_code) {
 
+	Board_LCD_Init();
+	LCD_Init();
 	int i,j;
 
 	//clear LCD
@@ -41,56 +52,71 @@ void change_lcd_message(int message_code) {
 	}
 	LCD_Refresh(0, 0, LCD_X_RES - 1, LCD_Y_RES - 1);
 
-	sprintf(string, "user_ID: %u", user_ID);
-	write_lcd_text(0, string);
 	switch (message_code) {
 
-	case USTATUS_UNAUTHORIZED:
-		write_lcd_text(1, "Unauthorized");
-		break;
+		case START_MESSAGE:
+			write_lcd_text(1, "Bem Vindo!");
+			write_lcd_text(2, "SmartFare");
+			break;
 
-	case USTATUS_INSUF_BALANCE:
-		write_lcd_text(1, "Saldo insufic.");
-		sprintf(string, "saldo: %.2f", balance);
-		write_lcd_text(2, string);
-		sprintf(string, "saldo_min: %.2f", min_balance);
-		write_lcd_text(3, string);
-		break;
+		case USTATUS_UNAUTHORIZED:
+			print_read_user_ID();
+			write_lcd_text(2, "Cartao ja usado");
+			write_lcd_text(3, "na entrada");
+			break;
 
-	case USTATUS_AUTHORIZED:
-		write_lcd_text(1, "Authorized");
-		sprintf(string, "saldo: %.2f", balance);
-		write_lcd_text(2, string);
-		write_lcd_text(4, "Boa viagem");
-		break;
+		case USTATUS_INSUF_BALANCE:
+			print_read_user_ID();
+			write_lcd_text(2, "Saldo insufic.");
+			sprintf(string, "Saldo: %d", lcd_balance);
+			write_lcd_text(3, string);
+			sprintf(string, "Saldo_min: %d", min_balance);
+			write_lcd_text(4, string);
+			break;
 
-	case USTATUS_TAP_OUT:
-		sprintf(string, "tarifa: %.2f", travel_fare);
-		write_lcd_text(1, string);
-		sprintf(string, "saldo: %.2f", balance);
-		write_lcd_text(2, string);
-		break;
+		case USTATUS_AUTHORIZED:
+			print_read_user_ID();
+			write_lcd_text(2, "Boa viagem");
+			sprintf(string, "Saldo:");
+			write_lcd_text(3,string);
+			sprintf(string, "%d", lcd_balance);
+			write_lcd_text(4,string);
+			break;
 
-	case USTATUS_TAP_OUT_LOW_BALANCE:
-		sprintf(string, "tarifa: %.2f", travel_fare);
-		write_lcd_text(1, string);
-		sprintf(string, "saldo: %.2f", balance);
-		write_lcd_text(2, string);
-		write_lcd_text(4, "*Cobrado na");
-		write_lcd_text(5, " prox. recarga");
-		break;
+		case USTATUS_TAP_OUT:
+			print_read_user_ID();
+			sprintf(string, "Tarifa: %d", travel_fare);
+			write_lcd_text(2, string);
+			sprintf(string, "Saldo: %d", lcd_balance);
+			write_lcd_text(3, string);
+			break;
+
+		case USTATUS_TAP_OUT_LOW_BALANCE:
+			print_read_user_ID();
+			sprintf(string, "Tarifa: %d", travel_fare);
+			write_lcd_text(2, string);
+			sprintf(string, "Saldo: %d", lcd_balance);
+			write_lcd_text(3, string);
+			break;
 	}
+}
+
+void print_read_user_ID() {
+	sprintf(string, "ID do usuario:");
+	write_lcd_text(0, string);
+	sprintf(string, "%u", lcd_last_userID);
+	write_lcd_text(1, string);
 }
 
 //size (128x64)
 void write_lcd_text (int line, char* text) {
-	
+
 	int line_size = FONT_SIZE;
 	line_size += 2;
 	int number_lines = LCD_Y_RES/line_size;
 	if (line < number_lines) {
 		LCD_PutStrXY(0, line *line_size, text);
-	} 
-	
+	}
+
 }
 
