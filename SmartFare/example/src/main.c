@@ -19,14 +19,18 @@
 #include "delay.h"
 #include "MFRC522.h"
 #include "SmartFareData.h"
-
+#include "SIM800.h"
 #include "RFIDUtils.h"
+
+/**********************************
+ *  Extra functions defined in the main.c file
+ **********************************/
+int getUserByID(unsigned int userID);
+void addNewUser(unsigned int userID);
 
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-
-#define  USER_BUFFER_SIZE  10
 
 #if defined(BOARD_NXP_LPCXPRESSO_4337)
 
@@ -74,6 +78,21 @@ void GINT0_IRQHandler(void)
 	interrupt_flag = 1;
 }
 
+void setupGSM(){
+	uint8_t ret;
+	for(uint8_t i = 0; i < MAX_ATTEMPTS; i++){
+	    DEBUGOUT("\nInitializing SIM800");
+	    initSIM800();
+	    DEBUGOUT("\nSetup SIM800");
+	    ret = setupSIM800();
+	    if(ret == 0){
+	    	break;
+	    }
+	    DEBUGOUT("\nError: %d", ret);
+	    DEBUGOUT("\nError Buffer: %s",bufferSIM800);
+	}
+	DEBUGOUT("\nSetup Successful");
+}
 
 /**
  * @brief	Main program body
@@ -92,8 +111,7 @@ int main(void)
 	//init shield lcd, and SSP interface pins
 	board_lcd_init();//
 
-    //setupGSM();
-
+    setupGSM();
 	/*****************************************************************************
 	 *Set up RFID
 	 ****************************************************************************/
@@ -127,7 +145,7 @@ int main(void)
 	 //    DEBUGOUT("Reader 2 ");
 	 //    PCD_DumpVersionToSerial(mfrc2);	// Show details of PCD - MFRC522 Card Reader details
 
-	    //auxiliar variable to search an userId in the usersBuffer
+	    //auxiliary variable to search an userId in the usersBuffer
 	    int userIndex;
 
 	/* Set pin back to GPIO (on some boards may have been changed to something
@@ -260,5 +278,4 @@ void addNewUser(unsigned int userID){
 		usersBufferIndex = 0;
 	}
 }
-
 

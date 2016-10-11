@@ -57,6 +57,11 @@ void Board_UART_Init(LPC_USART_T *pUART)
 {
 	Chip_SCU_PinMuxSet(0x6, 4, (SCU_MODE_INACT | SCU_MODE_FUNC2));					/* P6,4 : UART0_TXD */
 	Chip_SCU_PinMuxSet(0x2, 1, (SCU_MODE_INACT | SCU_MODE_INBUFF_EN | SCU_MODE_ZIF_DIS | SCU_MODE_FUNC1));/* P2.1 : UART0_RXD */
+
+	if(pUART == LPC_USART3){
+	Chip_SCU_PinMuxSet(0x2, 3, (SCU_MODE_INACT | SCU_MODE_FUNC2));					/* P2_3 : UART3_TXD */
+	Chip_SCU_PinMuxSet(0x2, 4, (SCU_MODE_INACT | SCU_MODE_INBUFF_EN | SCU_MODE_ZIF_DIS | SCU_MODE_FUNC2));/* P2_4 : UART3_RXD */
+	}
 }
 
 /* Initialize debug output via UART for board */
