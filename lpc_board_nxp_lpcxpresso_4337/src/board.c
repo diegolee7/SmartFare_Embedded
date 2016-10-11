@@ -300,6 +300,9 @@ void Board_LCD_WriteData(const uint8_t *data, uint16_t size)
 	LCD_SSP->CR0 = val;
 }
 
+void Board_LCD_Chip_Select_Down(){
+	Chip_GPIO_SetPinOutHigh(LPC_GPIO_PORT, LCD_CMD_GPIO_PORT, LCD_CMD_GPIO_PIN);
+}
 /**
  * @}
  */

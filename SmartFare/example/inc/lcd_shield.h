@@ -25,5 +25,7 @@ void board_lcd_init();
  */
 void change_lcd_message(int message_code);
 void write_lcd_text (int line, char* string);
+void set_lcd_last_userID(unsigned int userID);
+void set_lcd_balance(int balance);
 
 #endif /* SRC_LCD_SHIELD_H_ */

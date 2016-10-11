@@ -15,11 +15,12 @@ static const int min_balance = 300;
 
 //variables that are updated outside (when user taps the card)
 volatile unsigned int user_ID;
-volatile int balance;
+volatile int lcd_balance_;
 volatile int travel_fare;
 
 typedef enum __UserStatus{
 
+    START_MESSAGE,
 	USTATUS_UNAUTHORIZED,		//user is already onboard
 	USTATUS_INSUF_BALANCE,		//user have insufficient balance
 	USTATUS_AUTHORIZED,			//user have enough balance
