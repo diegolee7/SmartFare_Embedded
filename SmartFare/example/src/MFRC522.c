@@ -6,7 +6,8 @@
 
 #include "MFRC522.h"
 
-
+// ADT object allocation counter
+static int MFRC_Instance_Counter = 0;
 
 
 	 /**

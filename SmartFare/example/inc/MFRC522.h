@@ -82,10 +82,8 @@ extern "C" {
 #include "delay.h"
 #define BUFFER_SIZE 1 //send only one byte per transfer, see WriteRegister functions
 #define MFRC522_BIT_RATE 4000000 //Defined as 4MHz in the original library
+#define MFRC_MAX_INSTANCES 2 // Used for ADT object allocation
 
-// ADT object allocation variables
-#define MFRC_MAX_INSTANCES 2
-static int MFRC_Instance_Counter = 0;
 
 
 static const uint8_t FIFO_SIZE = 64;		// Size of the MFRC522 FIFO
