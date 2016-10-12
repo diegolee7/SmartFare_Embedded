@@ -56,7 +56,8 @@
  * 		Warning: Please read section 8.7 "Memory Access". It includes this text:
  *if the PICC detects a format violation the whole sector is irreversibly
  *blocked.
- *		To use a block in "value block" mode (for Increment/Decrement operations)
+ *		To use a block in "value block" mode (for Increment/Decrement
+ *operations)
  *you need to change the sector trailer. Use PICC_SetAccessBits() to calculate
  *the bit patterns.
  * MIFARE Classic 4K (MF1S703x):
@@ -108,7 +109,7 @@ extern "C" {
 #define BUFFER_SIZE                                                            \
 	1 // send only one byte per transfer, see WriteRegister functions
 #define MFRC522_BIT_RATE 4000000 // Defined as 4MHz in the original library
-#define MFRC_MAX_INSTANCES 2 // Used for ADT object allocation
+#define MFRC_MAX_INSTANCES 2	 // Used for ADT object allocation
 
 static const uint8_t FIFO_SIZE = 64; // Size of the MFRC522 FIFO
 
@@ -269,8 +270,8 @@ typedef enum _PICC_Command {
 	PICC_CMD_MF_AUTH_KEY_A = 0x60, // Perform authentication with Key A
 	PICC_CMD_MF_AUTH_KEY_B = 0x61, // Perform authentication with Key B
 	PICC_CMD_MF_READ = 0x30,	   // Reads one 16 uint8_t block from the
-							 // authenticated sector of the PICC. Also used for
-							 // MIFARE Ultralight.
+	// authenticated sector of the PICC. Also used for
+	// MIFARE Ultralight.
 	PICC_CMD_MF_WRITE = 0xA0, // Writes one 16 uint8_t block to the
 							  // authenticated sector of the PICC. Called
 							  // "COMPATIBILITY WRITE" for MIFARE Ultralight.
@@ -293,8 +294,8 @@ typedef enum _PICC_Command {
 
 // MIFARE constants that does not fit anywhere else
 typedef enum _MIFARE_Misc {
-	MF_ACK = 0xA,   // The MIFARE Classic uses a 4 bit ACK/NAK. Any other value
-					// than 0xA is NAK.
+	MF_ACK = 0xA, // The MIFARE Classic uses a 4 bit ACK/NAK. Any other value
+	// than 0xA is NAK.
 	MF_KEY_SIZE = 6 // A Mifare Crypto1 key is 6 uint8_ts.
 } MIFARE_Misc;
 
