@@ -48,11 +48,11 @@ extern "C"
  * SWIM font data structure
  */
 typedef struct {
-	int16_t font_height;
-	uint8_t  first_char;
-	uint8_t  last_char;
-	uint16_t *font_table;
-	uint8_t  *font_width_table;
+    int16_t font_height;
+    uint8_t  first_char;
+    uint8_t  last_char;
+    uint16_t *font_table;
+    uint8_t  *font_width_table;
 } FONT_T;
 
 #if defined(__cplusplus)
