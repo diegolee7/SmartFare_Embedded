@@ -81,15 +81,15 @@ void GINT0_IRQHandler(void)
 void setupGSM(){
 	uint8_t ret;
 	for(uint8_t i = 0; i < MAX_ATTEMPTS; i++){
-	    DEBUGOUT("\nInitializing SIM800");
-	    initSIM800();
-	    DEBUGOUT("\nSetup SIM800");
-	    ret = setupSIM800();
-	    if(ret == 0){
-	    	break;
-	    }
-	    DEBUGOUT("\nError: %d", ret);
-	    DEBUGOUT("\nError Buffer: %s",bufferSIM800);
+		DEBUGOUT("\nInitializing SIM800");
+		initSIM800();
+		DEBUGOUT("\nSetup SIM800");
+		ret = setupSIM800();
+		if(ret == 0){
+			break;
+		}
+		DEBUGOUT("\nError: %d", ret);
+		DEBUGOUT("\nError Buffer: %s",bufferSIM800);
 	}
 	DEBUGOUT("\nSetup Successful");
 }
@@ -111,24 +111,24 @@ int main(void)
 	//init shield lcd, and SSP interface pins
 	board_lcd_init();//
 
-    setupGSM();
+	setupGSM();
 	/*****************************************************************************
 	 *Set up RFID
 	 ****************************************************************************/
-	    SysTick_Init();//to use the delay library
-	    MFRC522Ptr_t mfrc1=MFRC522_Init();
-	    //Define the pins to use as CS(SS or SSEL)  an RST
+		SysTick_Init();//to use the delay library
+		MFRC522Ptr_t mfrc1=MFRC522_Init();
+		//Define the pins to use as CS(SS or SSEL)  an RST
 		Chip_SCU_PinMuxSet (0x1, 12,  (SCU_PINIO_FAST | SCU_MODE_FUNC0)); //Set as GPIO
 		Chip_SCU_PinMuxSet (0x1, 10,  (SCU_PINIO_FAST | SCU_MODE_FUNC0)); //Set as GPIO
-	    // GPIO1[12]= P2_12
-	    mfrc1->_chipSelectPin.port = 1;
-	    mfrc1->_chipSelectPin.pin = 12;
-	    // GPIO1[10]= P2_9
-	    mfrc1->_resetPowerDownPin.port = 1;
-	    mfrc1->_resetPowerDownPin.pin = 10;
-	    PCD_Init(mfrc1,LPC_SSP1);
-	    DEBUGOUT("Reader 1 ");
-	    PCD_DumpVersionToSerial(mfrc1);	// Show details of PCD - MFRC522 Card Reader details
+		// GPIO1[12]= P2_12
+		mfrc1->_chipSelectPin.port = 1;
+		mfrc1->_chipSelectPin.pin = 12;
+		// GPIO1[10]= P2_9
+		mfrc1->_resetPowerDownPin.port = 1;
+		mfrc1->_resetPowerDownPin.pin = 10;
+		PCD_Init(mfrc1,LPC_SSP1);
+		DEBUGOUT("Reader 1 ");
+		PCD_DumpVersionToSerial(mfrc1);	// Show details of PCD - MFRC522 Card Reader details
 
 	 //    //Repeat config for RFID reader 2
 	 //    MFRC522Ptr_t mfrc2=MFRC522_Init();
@@ -145,8 +145,8 @@ int main(void)
 	 //    DEBUGOUT("Reader 2 ");
 	 //    PCD_DumpVersionToSerial(mfrc2);	// Show details of PCD - MFRC522 Card Reader details
 
-	    //auxiliary variable to search an userId in the usersBuffer
-	    int userIndex;
+		//auxiliary variable to search an userId in the usersBuffer
+		int userIndex;
 
 	/* Set pin back to GPIO (on some boards may have been changed to something
 	   else by Board_Init()) */
@@ -179,7 +179,7 @@ int main(void)
 		}
 
 		//////////////////////
-	    //RF ID test
+		//RF ID test
 		//////////////////////
 
 		// Look for new cards

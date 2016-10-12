@@ -50,22 +50,22 @@
 //#define DEBUG Serial, DEBUG already defined in board.c
 
 typedef enum {
-    HTTP_DISABLED = 0,
-    HTTP_READY,
-    HTTP_CONNECTING,
-    HTTP_READING,
-    HTTP_ERROR,
+	HTTP_DISABLED = 0,
+	HTTP_READY,
+	HTTP_CONNECTING,
+	HTTP_READING,
+	HTTP_ERROR,
 } HTTP_STATES;
 
 typedef struct {
-    float lat;
-    float lon;
-    uint8_t year; /* year past 2000, e.g. 15 for 2015 */
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t minute;
-    uint8_t second;
+	float lat;
+	float lon;
+	uint8_t year; /* year past 2000, e.g. 15 for 2015 */
+	uint8_t month;
+	uint8_t day;
+	uint8_t hour;
+	uint8_t minute;
+	uint8_t second;
 } GSM_LOCATION;
 
 // check if there is available serial data

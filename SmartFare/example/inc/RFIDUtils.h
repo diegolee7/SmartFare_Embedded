@@ -41,26 +41,26 @@ static int readCardBlock(MFRC522Ptr_t mfrc522 ,uint8_t sector, uint8_t blockAddr
 	int i;
 	   // using FFFFFFFFFFFFh which is the default at chip delivery from the factory
 	for ( i = 0; i < 6; i++) {
-	    key.keyuint8_t[i] = 0xFF;
+		key.keyuint8_t[i] = 0xFF;
 	}
 
-    // Authenticate using key A
-    status = (StatusCode) PCD_Authenticate(mfrc522,PICC_CMD_MF_AUTH_KEY_A, blockAddr, &key, &(mfrc522->uid));
-    if (status != STATUS_OK) {
-        DEBUGOUT("PCD_Authenticate() failed: ");
-        DEBUGOUT(GetStatusCodeName(status));
-        return -1;
-    }
+	// Authenticate using key A
+	status = (StatusCode) PCD_Authenticate(mfrc522,PICC_CMD_MF_AUTH_KEY_A, blockAddr, &key, &(mfrc522->uid));
+	if (status != STATUS_OK) {
+		DEBUGOUT("PCD_Authenticate() failed: ");
+		DEBUGOUT(GetStatusCodeName(status));
+		return -1;
+	}
 
-    // Read data from the block
-    status = (StatusCode) MIFARE_Read(mfrc522, blockAddr, auxBuffer, &size);
-    if (status != STATUS_OK) {
-        DEBUGOUT("MIFARE_Read() failed: ");
-        DEBUGOUT(GetStatusCodeName(status));
-        return -2;
-    }
+	// Read data from the block
+	status = (StatusCode) MIFARE_Read(mfrc522, blockAddr, auxBuffer, &size);
+	if (status != STATUS_OK) {
+		DEBUGOUT("MIFARE_Read() failed: ");
+		DEBUGOUT(GetStatusCodeName(status));
+		return -2;
+	}
 
-    return 0;
+	return 0;
 }
 
 /**
@@ -76,26 +76,26 @@ static int writeCardBlock(MFRC522Ptr_t mfrc522 ,uint8_t sector, uint8_t blockAdd
 	int i;
 	   // using FFFFFFFFFFFF which is the default at chip delivery from the factory
 	for ( i = 0; i < 6; i++) {
-	    key.keyuint8_t[i] = 0xFF;
+		key.keyuint8_t[i] = 0xFF;
 	}
 
-    // Authenticate using key A
-    status = (StatusCode) PCD_Authenticate(mfrc522,PICC_CMD_MF_AUTH_KEY_A, blockAddr, &key, &(mfrc522->uid));
-    if (status != STATUS_OK) {
-        DEBUGOUT("PCD_Authenticate() failed: ");
-        DEBUGOUT(GetStatusCodeName(status));
-        return -1;
-    }
+	// Authenticate using key A
+	status = (StatusCode) PCD_Authenticate(mfrc522,PICC_CMD_MF_AUTH_KEY_A, blockAddr, &key, &(mfrc522->uid));
+	if (status != STATUS_OK) {
+		DEBUGOUT("PCD_Authenticate() failed: ");
+		DEBUGOUT(GetStatusCodeName(status));
+		return -1;
+	}
 
-    // Write data from the block, always write 16 bytes
-    status = (StatusCode) MIFARE_Write(mfrc522, blockAddr, auxBuffer, 16);
-    if (status != STATUS_OK) {
-        DEBUGOUT("MIFARE_Write() failed: ");
-        DEBUGOUT(GetStatusCodeName(status));
-        return -2;
-    }
+	// Write data from the block, always write 16 bytes
+	status = (StatusCode) MIFARE_Write(mfrc522, blockAddr, auxBuffer, 16);
+	if (status != STATUS_OK) {
+		DEBUGOUT("MIFARE_Write() failed: ");
+		DEBUGOUT(GetStatusCodeName(status));
+		return -2;
+	}
 
-    return 0;
+	return 0;
 }
 
 
@@ -112,17 +112,17 @@ int readCardBalance(MFRC522Ptr_t mfrc522 ){
 
 	int balance;
 
-    int readStatus = readCardBlock(mfrc522, 1, 4);
+	int readStatus = readCardBlock(mfrc522, 1, 4);
 
-    if(readStatus == 0){
-    		//convert the balance bytes to an integer, byte[0] is the MSB
-            balance= (int)auxBuffer[3] | (int)(auxBuffer[2]<<8) | (int)(auxBuffer[1]<<16) | (int)(auxBuffer[0]<<24);
-    }
-    else{
-        balance= -999;
-    }
+	if(readStatus == 0){
+			//convert the balance bytes to an integer, byte[0] is the MSB
+			balance= (int)auxBuffer[3] | (int)(auxBuffer[2]<<8) | (int)(auxBuffer[1]<<16) | (int)(auxBuffer[0]<<24);
+	}
+	else{
+		balance= -999;
+	}
 
-    return balance;
+	return balance;
 }
 
 /**
@@ -143,9 +143,9 @@ int writeCardBalance(MFRC522Ptr_t mfrc522, int newBalance){
 		auxBuffer[i] = 0xBB;
 	}
 
-    int writeStatus = writeCardBlock(mfrc522, 1, 4);
+	int writeStatus = writeCardBlock(mfrc522, 1, 4);
 
-    return writeStatus;
+	return writeStatus;
 }
 
 
