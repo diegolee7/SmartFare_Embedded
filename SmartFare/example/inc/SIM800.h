@@ -12,35 +12,34 @@
 * For more information, please visit http://arduinodev.com
 *************************************************************************/
 
-
 #ifndef INC_SIM800_H_
 #define INC_SIM800_H_
 
-
-//Adjustments to work with the NXP LPCExpresso4337 board
+// Adjustments to work with the NXP LPCExpresso4337 board
 #include "board.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include "delay.h"
 
-//min redefinition
-#define min(a,b) ((a)<(b)?(a):(b))
+// min redefinition
+#define min(a, b) ((a) < (b) ? (a) : (b))
 
-// Pointers to the UART peripheral, interrupt and handler, defined in the setupUART().
-#define SIM800_LPC_UARTX       LPC_USART3
-#define SIM800_UARTx_IRQn      USART3_IRQn
-#define UARTx_IRQHandler       UART3_IRQHandler
+// Pointers to the UART peripheral, interrupt and handler, defined in the
+// setupUART().
+#define SIM800_LPC_UARTX LPC_USART3
+#define SIM800_UARTx_IRQn USART3_IRQn
+#define UARTx_IRQHandler UART3_IRQHandler
 
 /* Transmit and receive ring buffer sizes */
-#define SIM800_UART_SRB_SIZE 128	/* Send */
-#define SIM800_UART_RRB_SIZE 64	/* Receive */
+#define SIM800_UART_SRB_SIZE 128 /* Send */
+#define SIM800_UART_RRB_SIZE 64  /* Receive */
 
 // change this to the pin connect with SIM800 reset pin
 // #define SIM800_RESET_PORT	3
 // #define SIM800_RESET_PIN 	5
-#define SIM800_GPIO_RESET_PORT   1
-#define SIM800_GPIO_RESET_PIN    15
+#define SIM800_GPIO_RESET_PORT 1
+#define SIM800_GPIO_RESET_PIN 15
 
 #define TIM_APN "timbrasil.br"
 
@@ -80,17 +79,17 @@ uint32_t m_checkTimer;
  */
 void setupUART(int baudRate);
 
-
 /**
  * Util function to use instead of Serial.print
  * Uses pre-defined UART and ring buffer to output data
  */
 void UART_Print(const char *str);
 
-//uint 8_t checkbuffer(const char* expected1, const char* expected2 = 0, unsigned int timeout = 2000);
-uint8_t checkbuffer(const char* expected1, const char* expected2, unsigned int timeout);
+// uint 8_t checkbuffer(const char* expected1, const char* expected2 = 0,
+// unsigned int timeout = 2000);
+uint8_t checkbuffer(const char *expected1, const char *expected2,
+					unsigned int timeout);
 void purgeSerial();
-
 
 // initialize the module
 bool initSIM800();
@@ -102,16 +101,16 @@ bool getOperatorName();
 // get signal quality level (in dB)
 int getSignalQuality();
 // get GSM location and network time
-bool getLocation(GSM_LOCATION* loc);
+bool getLocation(GSM_LOCATION *loc);
 // initialize HTTP connection
 bool httpInit();
 // terminate HTTP connection
 void httpUninit();
 // connect to HTTP server
 
-//Default value if not set in function call, only works in C++
-//bool httpConnect(const char* url, const char* args = 0);
-bool httpConnect(const char* url, const char* args);
+// Default value if not set in function call, only works in C++
+// bool httpConnect(const char* url, const char* args = 0);
+bool httpConnect(const char *url, const char *args);
 // check if HTTP connection is established
 // return 0 for in progress, 1 for success, 2 for error
 uint8_t httpIsConnected();
@@ -121,15 +120,18 @@ void httpRead();
 // return 0 for in progress, -1 for error, uint8_ts of http payload on success
 int httpIsRead();
 // send AT command and check for expected response
-//uint8_t sendCommand(const char* cmd, unsigned int timeout = 2000, const char* expected = 0);
-uint8_t sendCommand(const char* cmd, unsigned int timeout, const char* expected);
+// uint8_t sendCommand(const char* cmd, unsigned int timeout = 2000, const char*
+// expected = 0);
+uint8_t sendCommand(const char *cmd, unsigned int timeout,
+					const char *expected);
 // send AT command and check for two possible responses
-//uint8_t sendCommand(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout = 2000);
-//Plain C do not allow function overloads (two distinct implementations of the same function name)
-uint8_t sendCommand2Expected(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout);
+// uint8_t sendCommand(const char* cmd, const char* expected1, const char*
+// expected2, unsigned int timeout = 2000);
+// Plain C do not allow function overloads (two distinct implementations of the
+// same function name)
+uint8_t sendCommand2Expected(const char *cmd, const char *expected1,
+							 const char *expected2, unsigned int timeout);
 // toggle low-power mode
 bool sleep(bool enabled);
-
-
 
 #endif /* INC_SIM800_H_ */

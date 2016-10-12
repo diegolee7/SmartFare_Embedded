@@ -30,7 +30,7 @@ typedef enum __UserStatus{
 
 typedef struct {
 	unsigned int userID;		//the PICC used stores a 4 byte user ID
-	int balance; 	   		   // the user balance in cents, may be negative
+	int balance;				// the user balance in cents, may be negative
 
 }UserInfo_T;
 
