@@ -78,7 +78,7 @@ void GINT0_IRQHandler(void)
 	interrupt_flag = 1;
 }
 
-void setupGSM(){
+void setupGSM() {
 	uint8_t ret;
 	for(uint8_t i = 0; i < MAX_ATTEMPTS; i++){
 		DEBUGOUT("\nInitializing SIM800");

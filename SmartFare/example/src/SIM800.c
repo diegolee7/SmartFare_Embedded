@@ -306,7 +306,7 @@ uint8_t sendCommand(const char* command, unsigned int timeout, const char* expec
 		DEBUGOUT("\nSending command: ");
 		DEBUGOUT("%s",command);
 	}
-	uint32_t t = SysTick->VAL;//millis();
+
 	uint8_t n = 0;
 	uint8_t bytesRead = 0;
 
@@ -319,8 +319,10 @@ uint8_t sendCommand(const char* command, unsigned int timeout, const char* expec
 				n = sizeof(bufferSIM800) / 2 - 1;
 				memcpy(bufferSIM800, bufferSIM800 + sizeof(bufferSIM800) / 2, n);
 			}
-			bufferSIM800[n++] = c;
-			bufferSIM800[n] = 0;
+			if (bytesRead > 0) {
+				bufferSIM800[n++] = c;
+				bufferSIM800[n] = 0;
+			}
 			if (strstr(bufferSIM800, expected ? expected : "OK\r")) {
 				DEBUGOUT("\nResponse ok: %s",bufferSIM800);
 				return n;
@@ -338,9 +340,10 @@ uint8_t sendCommand2Expected(const char* command, const char* expected1, const c
 		UART_Print(command);
 		UART_Print("\r\n");
 	}
-	uint32_t t = SysTick->VAL;//millis();
+
 	uint8_t n = 0;
 	uint8_t bytesRead = 0;
+
 	//do {
 		while (available()) {
 			char c;
@@ -350,8 +353,10 @@ uint8_t sendCommand2Expected(const char* command, const char* expected1, const c
 				n = sizeof(bufferSIM800) / 2 - 1;
 				memcpy(bufferSIM800, bufferSIM800 + sizeof(bufferSIM800) / 2, n);
 			}
-			bufferSIM800[n++] = c;
-			bufferSIM800[n] = 0;
+			if (bytesRead > 0) {
+				bufferSIM800[n++] = c;
+				bufferSIM800[n] = 0;
+			}
 			if (strstr(bufferSIM800, expected1)) {
 				DEBUGOUT("\nResponse: %s",bufferSIM800);
 				return 1;
@@ -380,8 +385,10 @@ uint8_t checkbuffer(const char* expected1, const char* expected2, unsigned int t
 			n = sizeof(bufferSIM800) / 2 - 1;
 			memcpy(bufferSIM800, bufferSIM800 + sizeof(bufferSIM800) / 2, n);
 		}
-		bufferSIM800[n++] = c;
-		bufferSIM800[n] = 0;
+		if (bytesRead > 0) {
+			bufferSIM800[n++] = c;
+			bufferSIM800[n] = 0;
+		}
 		if (strstr(bufferSIM800, expected1)) {
 			return 1;
 		}
