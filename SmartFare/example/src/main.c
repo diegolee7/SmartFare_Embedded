@@ -23,8 +23,8 @@
  **********************************/
 void setupGSM();
 void setupRFID();
-void checkRFID1();
-void checkRFID2();
+void userTapIn();
+void userTapOut();
 int getUserByID(unsigned int userID);
 void addNewUser(unsigned int userID);
 
@@ -71,21 +71,32 @@ int main(void) {
 	//Every LCD message changes the SSP configuration, must confgure it for the RFID again
 	PCD_Init(mfrc1, LPC_SSP1);
 
-	// Read RFID1 (When user get on board)
-	checkRFID1();
+	//have to improove this
+	while(1){
+		// Look for new cards in RFID1
+		if (!PICC_IsNewCardPresent(mfrc1)) {
+			continue;
+		}
 
-	//Update user data 
-	//Simulate vehicle movement data
+		// Select one of the cards
+		if (!PICC_ReadCardSerial(mfrc1)) {
+			continue;
+		}
+
+		userTapIn();
+		//Update user data
+		//Simulate vehicle movement data
 
 
-	// Read RFID2 (When user get of the vehicle)
-	checkRFID2();
+		// Read RFID2 (When user get of the vehicle)
+		userTapOut();
 
-	//Calculate fare based on vehicle movement
-	//Update user data 
-
-	__WFI();
+		//Calculate fare based on vehicle movement
+		//Update user data
+		__WFI();
 	}
+
+}
 
 
 /**********************************
@@ -153,16 +164,7 @@ void setupRFID() {
  *  System routine functions
  **********************************/
 
-void checkRFID1(){
-			// Look for new cards
-		if (!PICC_IsNewCardPresent(mfrc1)) {
-			continue;
-		}
-
-		// Select one of the cards
-		if (!PICC_ReadCardSerial(mfrc1)) {
-			continue;
-		}
+void userTapIn(){
 
 		// // show card UID
 		// DEBUGOUT("Card uid: ");
@@ -181,7 +183,8 @@ void checkRFID1(){
 		if (userIndex == -1) {
 			// Register user in the buffer
 			addNewUser(last_user_ID);
-		} else {
+		}
+		else {
 			// user is already onboard
 			change_lcd_message(USTATUS_UNAUTHORIZED);
 			PCD_Init(mfrc1, LPC_SSP1);
@@ -191,21 +194,24 @@ void checkRFID1(){
 		last_balance = readCardBalance(mfrc1);
 		if (last_balance == (-999)) {
 			// error handling, the card does not have proper balance data inside
-		} else {
+		}
+		else {
 			// check for minumim balance
 			if (last_balance < min_balance) {
 				change_lcd_message(USTATUS_INSUF_BALANCE);
-				PCD_Init(mfrc1, LPC_SSP1); D again
-			} else {
+				PCD_Init(mfrc1, LPC_SSP1);
+			}
+			else {
 				set_lcd_last_userID(last_user_ID);
 				set_lcd_balance(last_balance);
 				change_lcd_message(USTATUS_AUTHORIZED);
 				PCD_Init(mfrc1, LPC_SSP1);
-			}
+				}
 		}
+
 }
 
-void checkRFID2(){
+void userTapOut(){
 	//TCODE HERE
 }
 

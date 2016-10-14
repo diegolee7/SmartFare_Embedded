@@ -16,6 +16,7 @@
 char string[16];
 static unsigned int lcd_last_userID;
 static int lcd_balance;
+static unsigned int travel_fare;
 
 void set_lcd_last_userID(unsigned int userID){
 	lcd_last_userID = userID;
