@@ -36,8 +36,7 @@
 #define SIM800_UART_RRB_SIZE 64  /* Receive */
 
 // change this to the pin connect with SIM800 reset pin
-// #define SIM800_RESET_PORT	3
-// #define SIM800_RESET_PIN 	5
+// Ue P3_5 = GPIO1[15]
 #define SIM800_GPIO_RESET_PORT 1
 #define SIM800_GPIO_RESET_PIN 15
 

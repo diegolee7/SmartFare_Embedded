@@ -405,8 +405,11 @@ uint8_t checkbuffer(const char *expected1, const char *expected2,
 }
 
 void purgeSerial() {
+	uint8_t ch;
 	while (Chip_UART_ReadLineStatus(SIM800_LPC_UARTX) & UART_LSR_RDR) {
 		Chip_UART_ReadByte(SIM800_LPC_UARTX);
+		//also have to remove the data from the ringbuffer
+		RingBuffer_Pop(&SIM800_rxring, &ch);
 	}
 }
 
