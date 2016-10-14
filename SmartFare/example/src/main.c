@@ -1,9 +1,5 @@
 /**
  * LICENSE
- * Main file ,incremental functionalities added
- * 1- Show message in the OM13082 shield LCD when a button is pressed
- * 2- Use one RFID on SSP1
- * 3- Use two  RFID readers on SSP0
  */
 /*****************************************************************************
  * LPCXpresso4337 project includes
@@ -25,36 +21,24 @@
 /**********************************
  *  Extra functions defined in the main.c file
  **********************************/
+void setupGSM();
+void setupRFID();
+void checkRFID1();
+void checkRFID2();
 int getUserByID(unsigned int userID);
 void addNewUser(unsigned int userID);
 
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-
-#if defined(BOARD_NXP_LPCXPRESSO_4337)
-
-/* The only switch available on this board is the ISP switch input.  The other
-   switches are connected to an I2C device. */
-#define TEST_BUTTON_PORT 0
-#define TEST_BUTTON_BIT 7
-#define TEST_BUTTON_PIN_PORT 2
-#define TEST_BUTTON_PIN_BIT 7
-#define TEST_BUTTON_MODE_FUNC SCU_MODE_FUNC0
-
-#else
-#error "Grouped GPIO Interrupt not configured for this example"
-#endif /* defined(BOARD_HITEX_EVA_4350) || defined(BOARD_HITEX_EVA_1850) */
+ //temporary variables
+int last_balance = 0;
+unsigned int last_user_ID;
+int usersBufferIndex = 0;
 
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
-
-int message_code = 0;
-int interrupt_flag = 0;
-int last_balance = 0;
-unsigned int last_user_ID;
-int usersBufferIndex = 0;
 
 // RFID structs
 MFRC522Ptr_t mfrc1;
@@ -63,14 +47,50 @@ MFRC522Ptr_t mfrc2;
 // buffer to store the active users in the system. Onboard passengers
 static UserInfo_T usersBuffer[USER_BUFFER_SIZE];
 
+
 /**
- * @brief	Handle Group GPIO 0 interrupt
- * @return	Nothing
+ * @brief	Main program body
+ * @return	Does not return
  */
-void GINT0_IRQHandler(void) {
-	Chip_GPIOGP_ClearIntStatus(LPC_GPIOGROUP, 0);
-	interrupt_flag = 1;
-}
+int main(void) {
+	// Read clock settings and update SystemCoreClock variable
+	SystemCoreClockUpdate();
+
+	/* Board_Init calls Chip_GPIO_Init and enables GPIO clock if needed,
+	   Chip_GPIO_Init is not called again */
+	Board_Init();
+	Board_LED_Set(0, false);
+
+	// init shield lcd, and SSP interface pins
+	board_lcd_init(); //
+
+	// setupGSM();
+	setupRFID();
+
+	change_lcd_message(START_MESSAGE);
+	//Every LCD message changes the SSP configuration, must confgure it for the RFID again
+	PCD_Init(mfrc1, LPC_SSP1);
+
+	// Read RFID1 (When user get on board)
+	checkRFID1();
+
+	//Update user data 
+	//Simulate vehicle movement data
+
+
+	// Read RFID2 (When user get of the vehicle)
+	checkRFID2();
+
+	//Calculate fare based on vehicle movement
+	//Update user data 
+
+	__WFI();
+	}
+
+
+/**********************************
+ *  Peripheral setup functions
+ **********************************/
 
 void setupGSM() {
 	uint8_t ret;
@@ -88,25 +108,6 @@ void setupGSM() {
 	DEBUGOUT("\nSetup Successful");
 }
 
-void setupButtonInterupt() {
-	/* Set pin back to GPIO (on some boards may have been changed to something
-	   else by Board_Init()) */
-	Chip_SCU_PinMuxSet(
-		TEST_BUTTON_PIN_PORT, TEST_BUTTON_PIN_BIT,
-		(SCU_MODE_INBUFF_EN | SCU_MODE_INACT | TEST_BUTTON_MODE_FUNC));
-
-	/* Group GPIO interrupt 0 will be invoked when the button is pressed. */
-	Chip_GPIO_SetPinDIRInput(LPC_GPIO_PORT, TEST_BUTTON_PORT, TEST_BUTTON_BIT);
-	Chip_GPIOGP_SelectLowLevel(LPC_GPIOGROUP, 0, TEST_BUTTON_PORT,
-							   1 << TEST_BUTTON_BIT);
-	Chip_GPIOGP_EnableGroupPins(LPC_GPIOGROUP, 0, TEST_BUTTON_PORT,
-								1 << TEST_BUTTON_BIT);
-	Chip_GPIOGP_SelectAndMode(LPC_GPIOGROUP, 0);
-	Chip_GPIOGP_SelectEdgeMode(LPC_GPIOGROUP, 0);
-
-	/* Enable Group GPIO interrupt 0 */
-	NVIC_EnableIRQ(GINT0_IRQn);
-}
 
 void setupRFID() {
 
@@ -148,63 +149,27 @@ void setupRFID() {
 	//    Reader details
 }
 
-/**
- * @brief	Main program body
- * @return	Does not return
- */
-int main(void) {
-	// Read clock settings and update SystemCoreClock variable
-	SystemCoreClockUpdate();
+/**********************************
+ *  System routine functions
+ **********************************/
 
-	/* Board_Init calls Chip_GPIO_Init and enables GPIO clock if needed,
-	   Chip_GPIO_Init is not called again */
-	Board_Init();
-	Board_LED_Set(0, false);
-
-	// init shield lcd, and SSP interface pins
-	board_lcd_init(); //
-
-	setupGSM();
-	setupRFID();
-
-	change_lcd_message(START_MESSAGE);
-	PCD_Init(mfrc1, LPC_SSP1);
-
-	/* Spin in a loop here.  All the work is done in ISR. */
-	while (1) {
-		if (interrupt_flag) {
-			change_lcd_message(message_code);
-			interrupt_flag = 0;
-			message_code++;
-			if (message_code > 4) {
-				message_code = 0;
-			}
-		}
-
-		//////////////////////
-		// RF ID test
-		//////////////////////
-
-		// Look for new cards
+void checkRFID1(){
+			// Look for new cards
 		if (!PICC_IsNewCardPresent(mfrc1)) {
-			Board_LED_Toggle(1);
-			// delay_ms(500);
 			continue;
 		}
 
 		// Select one of the cards
 		if (!PICC_ReadCardSerial(mfrc1)) {
-			Board_LED_Toggle(2);
-			// delay_ms(500);
 			continue;
 		}
 
-		// show card UID
-		DEBUGOUT("Card uid: ");
-		for (uint8_t i = 0; i < mfrc1->uid.size; i++) {
-			DEBUGOUT(" %X", mfrc1->uid.uidByte[i]);
-		}
-		DEBUGOUT("\n\r");
+		// // show card UID
+		// DEBUGOUT("Card uid: ");
+		// for (uint8_t i = 0; i < mfrc1->uid.size; i++) {
+		// 	DEBUGOUT(" %X", mfrc1->uid.uidByte[i]);
+		// }
+		// DEBUGOUT("\n\r");
 
 		// convert the uid bytes to an integer, byte[0] is the MSB
 		last_user_ID =
@@ -225,12 +190,12 @@ int main(void) {
 		// read the user balance
 		last_balance = readCardBalance(mfrc1);
 		if (last_balance == (-999)) {
-			// error handling
+			// error handling, the card does not have proper balance data inside
 		} else {
 			// check for minumim balance
 			if (last_balance < min_balance) {
 				change_lcd_message(USTATUS_INSUF_BALANCE);
-				PCD_Init(mfrc1, LPC_SSP1);
+				PCD_Init(mfrc1, LPC_SSP1); D again
 			} else {
 				set_lcd_last_userID(last_user_ID);
 				set_lcd_balance(last_balance);
@@ -238,8 +203,10 @@ int main(void) {
 				PCD_Init(mfrc1, LPC_SSP1);
 			}
 		}
-		__WFI();
-	}
+}
+
+void checkRFID2(){
+	//TCODE HERE
 }
 
 /**********************************
@@ -264,6 +231,10 @@ int getUserByID(unsigned int userID) {
 	return -1;
 }
 
+/**
+ * Create an UserInfo_T instance with empty data and stores it int the usersBuffer
+ * @param userID user unique identification number in the system
+ */
 void addNewUser(unsigned int userID) {
 	UserInfo_T new_user;
 	new_user.userID = userID;
@@ -277,3 +248,5 @@ void addNewUser(unsigned int userID) {
 		usersBufferIndex = 0;
 	}
 }
+
+
