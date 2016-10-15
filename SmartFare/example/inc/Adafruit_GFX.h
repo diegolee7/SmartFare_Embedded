@@ -2,16 +2,47 @@
 #define _ADAFRUIT_GFX_H
 
 
-#include "gfxfont.h"
+typedef struct { // Data stored PER GLYPH
+  uint16_t bitmapOffset;     // Pointer into GFXfont->bitmap
+  uint8_t  width, height;    // Bitmap dimensions in pixels
+  uint8_t  xAdvance;         // Distance to advance cursor (x axis)
+  int8_t   xOffset, yOffset; // Dist from cursor pos to UL corner
+} GFXglyph;
 
-class Adafruit_GFX : public Print {
+typedef struct { // Data stored for FONT AS A WHOLE:
+  uint8_t  *bitmap;      // Glyph bitmaps, concatenated
+  GFXglyph *glyph;       // Glyph array
+  uint8_t   first, last; // ASCII extents
+  uint8_t   yAdvance;    // Newline distance (y axis)
+} GFXfont;
+
+
+
+// Display global variables encapsulated in struct
+struct Adafruit_GFX_T{
+    const int16_t
+    WIDTH, HEIGHT;   // This is the 'raw' display w/h - never changes
+  int16_t
+    _width, _height, // Display w/h as modified by current rotation
+    cursor_x, cursor_y;
+  uint16_t
+    textcolor, textbgcolor;
+  uint8_t
+    textsize,
+    rotation;
+  boolean
+    wrap,   // If set, 'wrap' text at right edge of display
+    _cp437; // If set, use correct CP437 charset (default is off)
+  GFXfont
+    *gfxFont;
+};
+
+// Pointer to an Adafruit_GFX ADT object
+typedef struct MFRC522_T *Adafruit_GFXPtr_t;
 
  public:
 
-  Adafruit_GFX(int16_t w, int16_t h); // Constructor
-
-  // This MUST be defined by the subclass:
-  virtual void drawPixel(int16_t x, int16_t y, uint16_t color) = 0;
+  Adafruit_GFX_Init(int16_t w, int16_t h); // Constructor
 
   // These MAY be overridden by the subclass to provide device-specific
   // optimized code.  Otherwise 'generic' versions are used.
@@ -75,23 +106,8 @@ class Adafruit_GFX : public Print {
   int16_t getCursorX(void) const;
   int16_t getCursorY(void) const;
 
- protected:
-  const int16_t
-    WIDTH, HEIGHT;   // This is the 'raw' display w/h - never changes
-  int16_t
-    _width, _height, // Display w/h as modified by current rotation
-    cursor_x, cursor_y;
-  uint16_t
-    textcolor, textbgcolor;
-  uint8_t
-    textsize,
-    rotation;
-  boolean
-    wrap,   // If set, 'wrap' text at right edge of display
-    _cp437; // If set, use correct CP437 charset (default is off)
-  GFXfont
-    *gfxFont;
-};
+
+
 
 
 #endif // _ADAFRUIT_GFX_H
