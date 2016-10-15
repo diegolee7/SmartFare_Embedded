@@ -17,6 +17,7 @@ All text above, and the splash screen below must be included in any redistributi
 *********************************************************************/
 
 #include "nokia5110.h"
+#include "Adafruit_GFX.h"
 
 //Some structures to trasnfer data using the SSP interface
 static Chip_SSP_DATA_SETUP_T NOKIA5110_data_Setup;
