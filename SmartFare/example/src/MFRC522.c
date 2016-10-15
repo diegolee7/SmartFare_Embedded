@@ -1467,7 +1467,7 @@ StatusCode PCD_NTAG216_AUTH(MFRC522Ptr_t mfrc, uint8_t *passWord,
 
 	// Transceive the data, store the reply in cmdBuffer[]
 	uint8_t waitIRq = 0x30; // RxIRq and IdleIRq
-	uint8_t cmdBufferSize = sizeof(cmdBuffer);
+	//uint8_t cmdBufferSize = sizeof(cmdBuffer);
 	uint8_t validBits = 0;
 	uint8_t rxlength = 5;
 	result =
