@@ -29,8 +29,6 @@ void userTapOut();
 int getUserByID(unsigned int userID);
 void addNewUser(unsigned int userID);
 
-// RTC functions
-void updateClockRTC();
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -104,18 +102,6 @@ int main(void) {
 	}
 }
 
-void updateClockRTC() {
-	if (oneSecondReachedRTC) {
-		oneSecondReachedRTC = 0;
-
-		RTC_On1 = (bool)!RTC_On1;
-		Board_LED_Set(1, RTC_On1);
-
-		/* read and display time */
-		Chip_RTC_GetFullTime(LPC_RTC, &FullTime);
-		showTime(&FullTime);
-	}
-}
 
 /**********************************
  *  Peripheral setup functions

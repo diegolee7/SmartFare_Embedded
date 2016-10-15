@@ -48,7 +48,7 @@ void setupRTC() {
 
 	Chip_RTC_Init(LPC_RTC);
 
-	set_current_RTC_time();
+	set_starting_RTC_time();
 
 	Chip_RTC_SetFullTime(LPC_RTC, &FullTime);
 
@@ -67,14 +67,41 @@ void setupRTC() {
 
 }
 
-void set_current_RTC_time() {
-	/* Set current time for RTC 2:00:00PM, 2012-10-05 */
+void set_starting_RTC_time() {
 	FullTime.time[RTC_TIMETYPE_SECOND] = 0;
 	FullTime.time[RTC_TIMETYPE_MINUTE] = 0;
 	FullTime.time[RTC_TIMETYPE_HOUR] = 14;
-	FullTime.time[RTC_TIMETYPE_DAYOFMONTH] = 5;
-	FullTime.time[RTC_TIMETYPE_DAYOFWEEK] = 5;
-	FullTime.time[RTC_TIMETYPE_DAYOFYEAR] = 279;
+	FullTime.time[RTC_TIMETYPE_DAYOFMONTH] = 15;
+	//FullTime.time[RTC_TIMETYPE_DAYOFWEEK] = 5;
+	//FullTime.time[RTC_TIMETYPE_DAYOFYEAR] = 279;
 	FullTime.time[RTC_TIMETYPE_MONTH] = 10;
-	FullTime.time[RTC_TIMETYPE_YEAR] = 2012;
+	FullTime.time[RTC_TIMETYPE_YEAR] = 2016;
+}
+
+void set_current_RTC_time(int seconds,
+						  int minutes,
+						  int hours,
+						  int dayOfMonth,
+						  int month,
+						  int year) {
+
+	FullTime.time[RTC_TIMETYPE_SECOND] = seconds;
+	FullTime.time[RTC_TIMETYPE_MINUTE] = minutes;
+	FullTime.time[RTC_TIMETYPE_HOUR] = hours;
+	FullTime.time[RTC_TIMETYPE_DAYOFMONTH] = dayOfMonth;
+	FullTime.time[RTC_TIMETYPE_MONTH] = month;
+	FullTime.time[RTC_TIMETYPE_YEAR] = year;
+}
+
+void updateClockRTC() {
+	if (oneSecondReachedRTC) {
+		oneSecondReachedRTC = 0;
+
+		RTC_On1 = (bool)!RTC_On1;
+		Board_LED_Set(1, RTC_On1);
+
+		/* read and display time */
+		Chip_RTC_GetFullTime(LPC_RTC, &FullTime);
+		showTime(&FullTime);
+	}
 }

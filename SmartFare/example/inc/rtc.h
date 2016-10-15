@@ -38,10 +38,17 @@
 void showTime(RTC_TIME_T *pTime);
 void RTC_IRQHandler(void);
 void setupRTC();
-void set_current_RTC_time();
+void set_starting_RTC_time();
+void set_current_RTC_time(int seconds,
+						  int minutes,
+						  int hours,
+						  int dayOfMonth,
+						  int month,
+						  int year);
+void updateClockRTC();
 
-volatile bool oneSecondReachedRTC;
-volatile bool RTC_On0, RTC_On1;
+static volatile bool oneSecondReachedRTC;
+static volatile bool RTC_On0, RTC_On1;
 
 RTC_TIME_T FullTime;
 
