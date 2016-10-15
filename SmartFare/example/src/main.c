@@ -31,7 +31,7 @@ void addNewUser(unsigned int userID);
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
- //temporary variables
+// temporary variables
 int last_balance = 0;
 unsigned int last_user_ID;
 int usersBufferIndex = 0;
@@ -46,7 +46,6 @@ MFRC522Ptr_t mfrc2;
 
 // buffer to store the active users in the system. Onboard passengers
 static UserInfo_T usersBuffer[USER_BUFFER_SIZE];
-
 
 /**
  * @brief	Main program body
@@ -68,10 +67,11 @@ int main(void) {
 	setupRFID();
 
 	change_lcd_message(START_MESSAGE);
-	//Every LCD message changes the SSP configuration, must configure it for the RFID again
+	// Every LCD message changes the SSP configuration, must configure it for
+	// the RFID again
 	PCD_Init(mfrc1, LPC_SSP1);
 
-	while(1){
+	while (1) {
 		// Look for new cards in RFID1
 		if (PICC_IsNewCardPresent(mfrc1)) {
 			// Select one of the cards
@@ -90,13 +90,11 @@ int main(void) {
 		}
 		*/
 
-		//Calculate fare based on vehicle movement
-		//Update user data
+		// Calculate fare based on vehicle movement
+		// Update user data
 		__WFI();
 	}
-
 }
-
 
 /**********************************
  *  Peripheral setup functions
@@ -117,7 +115,6 @@ void setupGSM() {
 	}
 	DEBUGOUT("\nSetup Successful");
 }
-
 
 void setupRFID() {
 
@@ -163,55 +160,51 @@ void setupRFID() {
  *  System routine functions
  **********************************/
 
-void userTapIn(){
+void userTapIn() {
 
-		// // show card UID
-		// DEBUGOUT("Card uid: ");
-		// for (uint8_t i = 0; i < mfrc1->uid.size; i++) {
-		// 	DEBUGOUT(" %X", mfrc1->uid.uidByte[i]);
-		// }
-		// DEBUGOUT("\n\r");
+	// // show card UID
+	// DEBUGOUT("Card uid: ");
+	// for (uint8_t i = 0; i < mfrc1->uid.size; i++) {
+	// 	DEBUGOUT(" %X", mfrc1->uid.uidByte[i]);
+	// }
+	// DEBUGOUT("\n\r");
 
-		// convert the uid bytes to an integer, byte[0] is the MSB
-		last_user_ID =
-			(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
-			(int)mfrc1->uid.uidByte[1] << 16 | (int)mfrc1->uid.uidByte[0] << 24;
+	// convert the uid bytes to an integer, byte[0] is the MSB
+	last_user_ID =
+		(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
+		(int)mfrc1->uid.uidByte[1] << 16 | (int)mfrc1->uid.uidByte[0] << 24;
 
-		// search for the uID in the usersBuffer
-		int userIndex = getUserByID(last_user_ID);
-		if (userIndex == -1) {
-			// Register user in the buffer
-			addNewUser(last_user_ID);
-		}
-		else {
-			// user is already onboard
-			change_lcd_message(USTATUS_UNAUTHORIZED);
+	// search for the uID in the usersBuffer
+	int userIndex = getUserByID(last_user_ID);
+	if (userIndex == -1) {
+		// Register user in the buffer
+		addNewUser(last_user_ID);
+	} else {
+		// user is already onboard
+		change_lcd_message(USTATUS_UNAUTHORIZED);
+		PCD_Init(mfrc1, LPC_SSP1);
+	}
+
+	// read the user balance
+	last_balance = readCardBalance(mfrc1);
+	if (last_balance == (-999)) {
+		// error handling, the card does not have proper balance data inside
+	} else {
+		// check for minumim balance
+		if (last_balance < min_balance) {
+			change_lcd_message(USTATUS_INSUF_BALANCE);
+			PCD_Init(mfrc1, LPC_SSP1);
+		} else {
+			set_lcd_last_userID(last_user_ID);
+			set_lcd_balance(last_balance);
+			change_lcd_message(USTATUS_AUTHORIZED);
 			PCD_Init(mfrc1, LPC_SSP1);
 		}
-
-		// read the user balance
-		last_balance = readCardBalance(mfrc1);
-		if (last_balance == (-999)) {
-			// error handling, the card does not have proper balance data inside
-		}
-		else {
-			// check for minumim balance
-			if (last_balance < min_balance) {
-				change_lcd_message(USTATUS_INSUF_BALANCE);
-				PCD_Init(mfrc1, LPC_SSP1);
-			}
-			else {
-				set_lcd_last_userID(last_user_ID);
-				set_lcd_balance(last_balance);
-				change_lcd_message(USTATUS_AUTHORIZED);
-				PCD_Init(mfrc1, LPC_SSP1);
-				}
-		}
-
+	}
 }
 
-void userTapOut(){
-	//TCODE HERE
+void userTapOut() {
+	// TODO
 }
 
 /**********************************
@@ -237,7 +230,8 @@ int getUserByID(unsigned int userID) {
 }
 
 /**
- * Create an UserInfo_T instance with empty data and stores it int the usersBuffer
+ * Create an UserInfo_T instance with empty data and stores it int the
+ * usersBuffer
  * @param userID user unique identification number in the system
  */
 void addNewUser(unsigned int userID) {
@@ -253,5 +247,3 @@ void addNewUser(unsigned int userID) {
 		usersBufferIndex = 0;
 	}
 }
-
-
