@@ -35,7 +35,7 @@ void addNewUser(unsigned int userID);
  ****************************************************************************/
 // temporary variables
 int last_balance = 0;
-unsigned int last_user_ID;
+unsigned int last_user_Id;
 int usersBufferIndex = 0;
 
 /*****************************************************************************
@@ -143,15 +143,15 @@ void userTapIn() {
 
 
 	// Convert the uid bytes to an integer, byte[0] is the MSB
-	last_user_ID =
+	last_user_Id =
 		(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
 		(int)mfrc1->uid.uidByte[1] << 16 | (int)mfrc1->uid.uidByte[0] << 24;
 
 	// Search for the uID in the usersBuffer
-	int userIndex = getUserByID(last_user_ID);
+	int userIndex = getUserByID(last_user_Id);
 	if (userIndex == -1) {
 		// Register user in the buffer
-		addNewUser(last_user_ID);
+		addNewUser(last_user_Id);
 	} else {
 		// user is already onboard
 		change_lcd_message(USTATUS_UNAUTHORIZED);
@@ -168,7 +168,7 @@ void userTapIn() {
 			change_lcd_message(USTATUS_INSUF_BALANCE);
 			PCD_Init(mfrc1, LPC_SSP1);
 		} else {
-			set_lcd_last_userID(last_user_ID);
+			set_lcd_last_userID(last_user_Id);
 			set_lcd_balance(last_balance);
 			change_lcd_message(USTATUS_AUTHORIZED);
 			PCD_Init(mfrc1, LPC_SSP1);
@@ -189,12 +189,12 @@ void userTapOut() {
  * @param  userID the iD to search for
  * @return        the index of the user in the usersBuffer
  */
-int getUserByID(unsigned int userID) {
+int getUserByID(unsigned int userId) {
 
 	int i;
 
 	for (i = 0; i < USER_BUFFER_SIZE; i++) {
-		if (userID == usersBuffer[i].userID) {
+		if (userId == usersBuffer[i].userId) {
 			return i;
 		}
 	}
@@ -207,9 +207,9 @@ int getUserByID(unsigned int userID) {
  * usersBuffer
  * @param userID user unique identification number in the system
  */
-void addNewUser(unsigned int userID) {
+void addNewUser(unsigned int userId) {
 	UserInfo_T new_user;
-	new_user.userID = userID;
+	new_user.userId = userId;
 
 	// add user to usersBuffer
 	usersBuffer[usersBufferIndex] = new_user;
