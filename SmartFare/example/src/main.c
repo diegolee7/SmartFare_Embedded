@@ -17,6 +17,7 @@
 #include "SmartFareData.h"
 #include "SIM800.h"
 #include "RFIDUtils.h"
+#include "rtc.h"
 
 /**********************************
  *  Extra functions defined in the main.c file
@@ -27,6 +28,7 @@ void userTapIn();
 void userTapOut();
 int getUserByID(unsigned int userID);
 void addNewUser(unsigned int userID);
+
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -68,6 +70,7 @@ int main(void) {
 
 	//setupGSM();
 	setupRFID();
+	setupRTC();
 
 	change_lcd_message(START_MESSAGE);
 
@@ -76,6 +79,9 @@ int main(void) {
 	PCD_Init(mfrc1, LPC_SSP1);
 
 	while (1) {
+
+		updateClockRTC();
+
 		// Look for new cards in RFID1
 		if (PICC_IsNewCardPresent(mfrc1)) {
 			// Select one of the cards
