@@ -7,8 +7,10 @@
 /* Gets and shows the current time and date */
 void showTime(RTC_TIME_T *pTime) {
 	DEBUGOUT("Time: %.2d:%.2d:%.2d %.2d/%.2d/%.4d\r\n",
-			 pTime->time[RTC_TIMETYPE_HOUR], pTime->time[RTC_TIMETYPE_MINUTE],
-			 pTime->time[RTC_TIMETYPE_SECOND], pTime->time[RTC_TIMETYPE_MONTH],
+			 pTime->time[RTC_TIMETYPE_HOUR],
+			 pTime->time[RTC_TIMETYPE_MINUTE],
+			 pTime->time[RTC_TIMETYPE_SECOND],
+			 pTime->time[RTC_TIMETYPE_MONTH],
 			 pTime->time[RTC_TIMETYPE_DAYOFMONTH],
 			 pTime->time[RTC_TIMETYPE_YEAR]);
 }
@@ -40,12 +42,13 @@ void RTC_IRQHandler(void) {
 }
 
 void setupRTC() {
-	set_current_RTC_time();
 
 	oneSecondReachedRTC = 0;
 	RTC_On0 = RTC_On1 = false;
 
 	Chip_RTC_Init(LPC_RTC);
+
+	set_current_RTC_time();
 
 	Chip_RTC_SetFullTime(LPC_RTC, &FullTime);
 
@@ -62,7 +65,6 @@ void setupRTC() {
 	 */
 	Chip_RTC_Enable(LPC_RTC, ENABLE);
 
-	set_current_RTC_time();
 }
 
 void set_current_RTC_time() {

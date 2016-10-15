@@ -40,8 +40,8 @@ void RTC_IRQHandler(void);
 void setupRTC();
 void set_current_RTC_time();
 
-static volatile bool oneSecondReachedRTC;
-static volatile bool RTC_On0, RTC_On1;
+volatile bool oneSecondReachedRTC;
+volatile bool RTC_On0, RTC_On1;
 
 RTC_TIME_T FullTime;
 
