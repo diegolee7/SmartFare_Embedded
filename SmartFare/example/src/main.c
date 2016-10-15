@@ -55,18 +55,22 @@ int main(void) {
 	// Read clock settings and update SystemCoreClock variable
 	SystemCoreClockUpdate();
 
+	// To use the delay library
+	SysTick_Init();
+
 	/* Board_Init calls Chip_GPIO_Init and enables GPIO clock if needed,
 	   Chip_GPIO_Init is not called again */
 	Board_Init();
 	Board_LED_Set(0, false);
 
-	// init shield lcd, and SSP interface pins
+	// Init shield lcd, and SSP interface pins
 	board_lcd_init(); //
 
-	// setupGSM();
+	//setupGSM();
 	setupRFID();
 
 	change_lcd_message(START_MESSAGE);
+
 	// Every LCD message changes the SSP configuration, must configure it for
 	// the RFID again
 	PCD_Init(mfrc1, LPC_SSP1);
@@ -118,9 +122,8 @@ void setupGSM() {
 
 void setupRFID() {
 
-	SysTick_Init(); // to use the delay library
 	mfrc1 = MFRC522_Init();
-	// Define the pins to use as CS(SS or SSEL)  an RST
+	// Define the pins to use as CS(SS or SSEL) and RST
 	Chip_SCU_PinMuxSet(0x1, 12,
 					   (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as GPIO
 	Chip_SCU_PinMuxSet(0x1, 10,
@@ -136,24 +139,25 @@ void setupRFID() {
 	PCD_DumpVersionToSerial(
 		mfrc1); // Show details of PCD - MFRC522 Card Reader details
 
-	//    //Repeat config for RFID reader 2
-	//    mfrc2 = MFRC522_Init();
-	//    //Define the pins to use as CS(SS or SSEL)  an RST
-	// Chip_SCU_PinMuxSet (0x1, 0,  (SCU_PINIO_FAST | SCU_MODE_FUNC0)); //Set as
-	// GPIO
-	// Chip_SCU_PinMuxSet (0x5, 02,  (SCU_PINIO_FAST | SCU_MODE_FUNC4)); //Set
-	// as GPIO
-	//    // GPIO1[0]= P1_07
-	//    mfrc2->_chipSelectPin.port = 1;
-	//    mfrc2->_chipSelectPin.pin = 0;
-	//    // GPIO5[02]= P2_02
-	//    mfrc2->_resetPowerDownPin.port = 5;
-	//    mfrc2->_resetPowerDownPin.pin = 2;
-	//    PCD_Init(mfrc2,LPC_SSP0);
-	//    DEBUGOUT("Reader 2 ");
-	//    PCD_DumpVersionToSerial(mfrc2);	// Show details of PCD - MFRC522
-	//    Card
-	//    Reader details
+	/*
+	// Repeat config for RFID reader 2
+	mfrc2 = MFRC522_Init();
+	// Define the pins to use as CS(SS or SSEL) and RST
+	Chip_SCU_PinMuxSet(0x1, 0, (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as
+																   // GPIO
+	Chip_SCU_PinMuxSet(0x5, 02,
+					   (SCU_PINIO_FAST | SCU_MODE_FUNC4)); // Set as GPIO
+	// GPIO1[0]= P1_07
+	mfrc2->_chipSelectPin.port = 1;
+	mfrc2->_chipSelectPin.pin = 0;
+	// GPIO5[02]= P2_02
+	mfrc2->_resetPowerDownPin.port = 5;
+	mfrc2->_resetPowerDownPin.pin = 2;
+	PCD_Init(mfrc2, LPC_SSP0);
+	DEBUGOUT("Reader 2 ");
+	PCD_DumpVersionToSerial(
+		mfrc2); // Show details of PCD - MFRC522 Card Reader details
+	*/
 }
 
 /**********************************
@@ -169,12 +173,12 @@ void userTapIn() {
 	// }
 	// DEBUGOUT("\n\r");
 
-	// convert the uid bytes to an integer, byte[0] is the MSB
+	// Convert the uid bytes to an integer, byte[0] is the MSB
 	last_user_ID =
 		(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
 		(int)mfrc1->uid.uidByte[1] << 16 | (int)mfrc1->uid.uidByte[0] << 24;
 
-	// search for the uID in the usersBuffer
+	// Search for the uID in the usersBuffer
 	int userIndex = getUserByID(last_user_ID);
 	if (userIndex == -1) {
 		// Register user in the buffer
@@ -185,12 +189,12 @@ void userTapIn() {
 		PCD_Init(mfrc1, LPC_SSP1);
 	}
 
-	// read the user balance
+	// Read the user balance
 	last_balance = readCardBalance(mfrc1);
 	if (last_balance == (-999)) {
-		// error handling, the card does not have proper balance data inside
+		// Error handling, the card does not have proper balance data inside
 	} else {
-		// check for minumim balance
+		// Check for minumim balance
 		if (last_balance < min_balance) {
 			change_lcd_message(USTATUS_INSUF_BALANCE);
 			PCD_Init(mfrc1, LPC_SSP1);
