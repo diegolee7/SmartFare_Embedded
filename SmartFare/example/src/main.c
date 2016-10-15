@@ -31,7 +31,7 @@ void addNewUser(unsigned int userID);
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
- //temporary variables
+// temporary variables
 int last_balance = 0;
 unsigned int last_user_ID;
 int usersBufferIndex = 0;
@@ -47,7 +47,6 @@ MFRC522Ptr_t mfrc2;
 // buffer to store the active users in the system. Onboard passengers
 static UserInfo_T usersBuffer[USER_BUFFER_SIZE];
 
-
 /**
  * @brief	Main program body
  * @return	Does not return
@@ -56,48 +55,50 @@ int main(void) {
 	// Read clock settings and update SystemCoreClock variable
 	SystemCoreClockUpdate();
 
+	// To use the delay library
+	SysTick_Init();
+
 	/* Board_Init calls Chip_GPIO_Init and enables GPIO clock if needed,
 	   Chip_GPIO_Init is not called again */
 	Board_Init();
 	Board_LED_Set(0, false);
 
-	// init shield lcd, and SSP interface pins
+	// Init shield lcd, and SSP interface pins
 	board_lcd_init(); //
 
-	// setupGSM();
+	//setupGSM();
 	setupRFID();
 
 	change_lcd_message(START_MESSAGE);
-	//Every LCD message changes the SSP configuration, must confgure it for the RFID again
+
+	// Every LCD message changes the SSP configuration, must configure it for
+	// the RFID again
 	PCD_Init(mfrc1, LPC_SSP1);
 
-	//have to improove this
-	while(1){
+	while (1) {
 		// Look for new cards in RFID1
-		if (!PICC_IsNewCardPresent(mfrc1)) {
-			continue;
+		if (PICC_IsNewCardPresent(mfrc1)) {
+			// Select one of the cards
+			if (PICC_ReadCardSerial(mfrc1)) {
+				userTapIn();
+			}
 		}
 
-		// Select one of the cards
-		if (!PICC_ReadCardSerial(mfrc1)) {
-			continue;
+		/*
+		// Look for new cards in RFID2
+		if (PICC_IsNewCardPresent(mfrc2)) {
+			// Select one of the cards
+			if (PICC_ReadCardSerial(mfrc2)) {
+				userTapOut();
+			}
 		}
+		*/
 
-		userTapIn();
-		//Update user data
-		//Simulate vehicle movement data
-
-
-		// Read RFID2 (When user get of the vehicle)
-		userTapOut();
-
-		//Calculate fare based on vehicle movement
-		//Update user data
+		// Calculate fare based on vehicle movement
+		// Update user data
 		__WFI();
 	}
-
 }
-
 
 /**********************************
  *  Peripheral setup functions
@@ -119,12 +120,10 @@ void setupGSM() {
 	DEBUGOUT("\nSetup Successful");
 }
 
-
 void setupRFID() {
 
-	SysTick_Init(); // to use the delay library
 	mfrc1 = MFRC522_Init();
-	// Define the pins to use as CS(SS or SSEL)  an RST
+	// Define the pins to use as CS(SS or SSEL) and RST
 	Chip_SCU_PinMuxSet(0x1, 12,
 					   (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as GPIO
 	Chip_SCU_PinMuxSet(0x1, 10,
@@ -140,79 +139,76 @@ void setupRFID() {
 	PCD_DumpVersionToSerial(
 		mfrc1); // Show details of PCD - MFRC522 Card Reader details
 
-	//    //Repeat config for RFID reader 2
-	//    mfrc2 = MFRC522_Init();
-	//    //Define the pins to use as CS(SS or SSEL)  an RST
-	// Chip_SCU_PinMuxSet (0x1, 0,  (SCU_PINIO_FAST | SCU_MODE_FUNC0)); //Set as
-	// GPIO
-	// Chip_SCU_PinMuxSet (0x5, 02,  (SCU_PINIO_FAST | SCU_MODE_FUNC4)); //Set
-	// as GPIO
-	//    // GPIO1[0]= P1_07
-	//    mfrc2->_chipSelectPin.port = 1;
-	//    mfrc2->_chipSelectPin.pin = 0;
-	//    // GPIO5[02]= P2_02
-	//    mfrc2->_resetPowerDownPin.port = 5;
-	//    mfrc2->_resetPowerDownPin.pin = 2;
-	//    PCD_Init(mfrc2,LPC_SSP0);
-	//    DEBUGOUT("Reader 2 ");
-	//    PCD_DumpVersionToSerial(mfrc2);	// Show details of PCD - MFRC522
-	//    Card
-	//    Reader details
+	/*
+	// Repeat config for RFID reader 2
+	mfrc2 = MFRC522_Init();
+	// Define the pins to use as CS(SS or SSEL) and RST
+	Chip_SCU_PinMuxSet(0x1, 0, (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as
+																   // GPIO
+	Chip_SCU_PinMuxSet(0x5, 02,
+					   (SCU_PINIO_FAST | SCU_MODE_FUNC4)); // Set as GPIO
+	// GPIO1[0]= P1_07
+	mfrc2->_chipSelectPin.port = 1;
+	mfrc2->_chipSelectPin.pin = 0;
+	// GPIO5[02]= P2_02
+	mfrc2->_resetPowerDownPin.port = 5;
+	mfrc2->_resetPowerDownPin.pin = 2;
+	PCD_Init(mfrc2, LPC_SSP0);
+	DEBUGOUT("Reader 2 ");
+	PCD_DumpVersionToSerial(
+		mfrc2); // Show details of PCD - MFRC522 Card Reader details
+	*/
 }
 
 /**********************************
  *  System routine functions
  **********************************/
 
-void userTapIn(){
+void userTapIn() {
 
-		// // show card UID
-		// DEBUGOUT("Card uid: ");
-		// for (uint8_t i = 0; i < mfrc1->uid.size; i++) {
-		// 	DEBUGOUT(" %X", mfrc1->uid.uidByte[i]);
-		// }
-		// DEBUGOUT("\n\r");
+	// // show card UID
+	// DEBUGOUT("Card uid: ");
+	// for (uint8_t i = 0; i < mfrc1->uid.size; i++) {
+	// 	DEBUGOUT(" %X", mfrc1->uid.uidByte[i]);
+	// }
+	// DEBUGOUT("\n\r");
 
-		// convert the uid bytes to an integer, byte[0] is the MSB
-		last_user_ID =
-			(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
-			(int)mfrc1->uid.uidByte[1] << 16 | (int)mfrc1->uid.uidByte[0] << 24;
+	// Convert the uid bytes to an integer, byte[0] is the MSB
+	last_user_ID =
+		(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
+		(int)mfrc1->uid.uidByte[1] << 16 | (int)mfrc1->uid.uidByte[0] << 24;
 
-		// search for the uID in the usersBuffer
-		int userIndex = getUserByID(last_user_ID);
-		if (userIndex == -1) {
-			// Register user in the buffer
-			addNewUser(last_user_ID);
-		}
-		else {
-			// user is already onboard
-			change_lcd_message(USTATUS_UNAUTHORIZED);
+	// Search for the uID in the usersBuffer
+	int userIndex = getUserByID(last_user_ID);
+	if (userIndex == -1) {
+		// Register user in the buffer
+		addNewUser(last_user_ID);
+	} else {
+		// user is already onboard
+		change_lcd_message(USTATUS_UNAUTHORIZED);
+		PCD_Init(mfrc1, LPC_SSP1);
+	}
+
+	// Read the user balance
+	last_balance = readCardBalance(mfrc1);
+	if (last_balance == (-999)) {
+		// Error handling, the card does not have proper balance data inside
+	} else {
+		// Check for minumim balance
+		if (last_balance < min_balance) {
+			change_lcd_message(USTATUS_INSUF_BALANCE);
+			PCD_Init(mfrc1, LPC_SSP1);
+		} else {
+			set_lcd_last_userID(last_user_ID);
+			set_lcd_balance(last_balance);
+			change_lcd_message(USTATUS_AUTHORIZED);
 			PCD_Init(mfrc1, LPC_SSP1);
 		}
-
-		// read the user balance
-		last_balance = readCardBalance(mfrc1);
-		if (last_balance == (-999)) {
-			// error handling, the card does not have proper balance data inside
-		}
-		else {
-			// check for minumim balance
-			if (last_balance < min_balance) {
-				change_lcd_message(USTATUS_INSUF_BALANCE);
-				PCD_Init(mfrc1, LPC_SSP1);
-			}
-			else {
-				set_lcd_last_userID(last_user_ID);
-				set_lcd_balance(last_balance);
-				change_lcd_message(USTATUS_AUTHORIZED);
-				PCD_Init(mfrc1, LPC_SSP1);
-				}
-		}
-
+	}
 }
 
-void userTapOut(){
-	//TCODE HERE
+void userTapOut() {
+	// TODO
 }
 
 /**********************************
@@ -238,7 +234,8 @@ int getUserByID(unsigned int userID) {
 }
 
 /**
- * Create an UserInfo_T instance with empty data and stores it int the usersBuffer
+ * Create an UserInfo_T instance with empty data and stores it int the
+ * usersBuffer
  * @param userID user unique identification number in the system
  */
 void addNewUser(unsigned int userID) {
@@ -254,5 +251,3 @@ void addNewUser(unsigned int userID) {
 		usersBufferIndex = 0;
 	}
 }
-
-
