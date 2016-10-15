@@ -68,28 +68,27 @@ int main(void) {
 	setupRFID();
 
 	change_lcd_message(START_MESSAGE);
-	//Every LCD message changes the SSP configuration, must confgure it for the RFID again
+	//Every LCD message changes the SSP configuration, must configure it for the RFID again
 	PCD_Init(mfrc1, LPC_SSP1);
 
-	//have to improove this
 	while(1){
 		// Look for new cards in RFID1
-		if (!PICC_IsNewCardPresent(mfrc1)) {
-			continue;
+		if (PICC_IsNewCardPresent(mfrc1)) {
+			// Select one of the cards
+			if (PICC_ReadCardSerial(mfrc1)) {
+				userTapIn();
+			}
 		}
 
-		// Select one of the cards
-		if (!PICC_ReadCardSerial(mfrc1)) {
-			continue;
+		/*
+		// Look for new cards in RFID2
+		if (PICC_IsNewCardPresent(mfrc2)) {
+			// Select one of the cards
+			if (PICC_ReadCardSerial(mfrc2)) {
+				userTapOut();
+			}
 		}
-
-		userTapIn();
-		//Update user data
-		//Simulate vehicle movement data
-
-
-		// Read RFID2 (When user get of the vehicle)
-		userTapOut();
+		*/
 
 		//Calculate fare based on vehicle movement
 		//Update user data
