@@ -20,15 +20,16 @@ All text above, and the splash screen below must be included in any redistributi
 
 //Some structures to trasnfer data using the SSP interface
 static Chip_SSP_DATA_SETUP_T NOKIA5110_data_Setup;
-
+static uint8_t NOKIA_5110_Tx_Buf[NOKIA5110_SSP_BUFFER_SIZE];
+static uint8_t NOKIA_5110_Rx_Buf[NOKIA5110_SSP_BUFFER_SIZE];
 
 #ifndef _BVt
   #define _BV(x) (1 << (x))
 #endif
 
-#include <stdlib.h>
 
-#include <Adafruit_GFX.h>
+
+// #include <Adafruit_GFX.h>
 
 #ifndef _BV
   #define _BV(bit) (1<<(bit))
@@ -97,34 +98,34 @@ static void updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t 
 // the most basic function, set a single pixel
 void drawPixel(int16_t x, int16_t y, uint16_t color) {
   if ((x < 0) || (x >= _width) || (y < 0) || (y >= _height))
-    return;
+	return;
 
   int16_t t;
   switch(rotation){
-    case 1:
-      t = x;
-      x = y;
-      y =  LCDHEIGHT - 1 - t;
-      break;
-    case 2:
-      x = LCDWIDTH - 1 - x;
-      y = LCDHEIGHT - 1 - y;
-      break;
-    case 3:
-      t = x;
-      x = LCDWIDTH - 1 - y;
-      y = t;
-      break;
+	case 1:
+	  t = x;
+	  x = y;
+	  y =  LCDHEIGHT - 1 - t;
+	  break;
+	case 2:
+	  x = LCDWIDTH - 1 - x;
+	  y = LCDHEIGHT - 1 - y;
+	  break;
+	case 3:
+	  t = x;
+	  x = LCDWIDTH - 1 - y;
+	  y = t;
+	  break;
   }
 
   if ((x < 0) || (x >= LCDWIDTH) || (y < 0) || (y >= LCDHEIGHT))
-    return;
+	return;
 
   // x is which column
   if (color) 
-    pcd8544_buffer[x+ (y/8)*LCDWIDTH] |= _BV(y%8);  
+	pcd8544_buffer[x+ (y/8)*LCDWIDTH] |= _BV(y%8);  
   else
-    pcd8544_buffer[x+ (y/8)*LCDWIDTH] &= ~_BV(y%8); 
+	pcd8544_buffer[x+ (y/8)*LCDWIDTH] &= ~_BV(y%8); 
 
   updateBoundingBox(x,y,x,y);
 }
@@ -133,47 +134,38 @@ void drawPixel(int16_t x, int16_t y, uint16_t color) {
 // the most basic function, get a single pixel
 uint8_t getPixel(int8_t x, int8_t y) {
   if ((x < 0) || (x >= LCDWIDTH) || (y < 0) || (y >= LCDHEIGHT))
-    return 0;
+	return 0;
 
   return (pcd8544_buffer[x+ (y/8)*LCDWIDTH] >> (y%8)) & 0x1;  
 }
 
 
 void begin(uint8_t contrast, uint8_t bias) {
-  if (isHardwareSPI()) {
-    // Setup hardware SPI.
-    SPI.begin();
-    SPI.setClockDivider(PCD8544_SPI_CLOCK_DIV);
-    SPI.setDataMode(SPI_MODE0);
-    SPI.setBitOrder(MSBFIRST);
-  }
-  else {
-    // Setup software SPI.
 
-    // Set software SPI specific pin outputs.
-    pinMode(_din, OUTPUT);
-    pinMode(_sclk, OUTPUT);
+	//initialize data transfer structures
+	NOKIA5110_data_Setup.length = NOKIA5110_SSP_BUFFER_SIZE;
+	NOKIA5110_data_Setup.rx_data = NOKIA_5110_Rx_Buf;
+	NOKIA5110_data_Setup.tx_data = NOKIA_5110_Tx_Buf;
 
-    // Set software SPI ports and masks.
-    clkport     = portOutputRegister(digitalPinToPort(_sclk));
-    clkpinmask  = digitalPinToBitMask(_sclk);
-    mosiport    = portOutputRegister(digitalPinToPort(_din));
-    mosipinmask = digitalPinToBitMask(_din);
-  }
+	// Setup hardware SPI.
+	// SPI.begin();
+	Chip_SSP_Init(NOKIA5110_LPC_SSP_X);
+	// Chip_SSP_Set_Mode(NOKIA5110_LPC_SSP_X, SSP_MODE_MASTER);
+	Chip_SSP_SetFormat(NOKIA5110_LPC_SSP_X, SSP_BITS_8, SSP_FRAMEFORMAT_SPI,SSP_CLOCK_CPHA0_CPOL0);
+	Chip_SSP_SetBitRate(NOKIA5110_LPC_SSP_X, NOKIA5110_BIT_RATE);
+  	Chip_SSP_Enable(NOKIA5110_LPC_SSP_X);
 
   // Set common pin outputs.
-  pinMode(_dc, OUTPUT);
-  if (_rst > 0)
-      pinMode(_rst, OUTPUT);
-  if (_cs > 0)
-      pinMode(_cs, OUTPUT);
+   	Chip_GPIO_SetPinDIROutput(LPC_GPIO_PORT, NOKIA5110_GPIO_CD_PORT, NOKIA5110_GPIO_CD_PIN);
+   	Chip_GPIO_SetPinDIROutput(LPC_GPIO_PORT, NOKIA5110_GPIO_RESET_PORT, NOKIA5110_GPIO_RESET_PIN);
+   	Chip_GPIO_SetPinDIROutput(LPC_GPIO_PORT, NOKIA5110_GPIO_CS_PORT, NOKIA5110_GPIO_CS_PIN);
+  
 
   // toggle RST low to reset
-  if (_rst > 0) {
-    digitalWrite(_rst, LOW);
-    delay(500);
-    digitalWrite(_rst, HIGH);
-  }
+	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_RESET_PORT, NOKIA5110_GPIO_RESET_PIN,(bool)true);
+	delay_ms(500);
+	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_RESET_PORT, NOKIA5110_GPIO_RESET_PIN,(bool)false);
+
 
   // get into the EXTENDED mode!
   command(PCD8544_FUNCTIONSET | PCD8544_EXTENDEDINSTRUCTION );
@@ -183,7 +175,7 @@ void begin(uint8_t contrast, uint8_t bias) {
 
   // set VOP
   if (contrast > 0x7f)
-    contrast = 0x7f;
+	contrast = 0x7f;
 
   command( PCD8544_SETVOP | contrast); // Experimentally determined
 
@@ -208,46 +200,42 @@ void begin(uint8_t contrast, uint8_t bias) {
 
 
 inline void spiWrite(uint8_t d) {
-  if (isHardwareSPI()) {
-    // Hardware SPI write.
-    SPI.transfer(d);
-  }
-  else {
-    // Software SPI write with bit banging.
-    for(uint8_t bit = 0x80; bit; bit >>= 1) {
-      *clkport &= ~clkpinmask;
-      if(d & bit) *mosiport |=  mosipinmask;
-      else        *mosiport &= ~mosipinmask;
-      *clkport |=  clkpinmask;
-    }
-  }
+
+	// Hardware SPI write.
+	// SPI.transfer(d);
+	NOKIA_5110_Tx_Buf[0] = d;
+	NOKIA5110_data_Setup.rx_cnt = NOKIA5110_data_Setup.tx_cnt = 0;
+	Chip_SSP_RWFrames_Blocking(NOKIA5110_LPC_SSP_X, &NOKIA5110_data_Setup);
+
 }
 
-bool isHardwareSPI() {
-  return (_din == -1 && _sclk == -1);
-}
+
 
 void command(uint8_t c) {
-  digitalWrite(_dc, LOW);
-  if (_cs > 0)
-    digitalWrite(_cs, LOW);
-  spiWrite(c);
-  if (_cs > 0)
-    digitalWrite(_cs, HIGH);
+ 	 // digitalWrite(_dc, LOW);
+  	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_CD_PORT, NOKIA5110_GPIO_CD_PIN,(bool)false);
+
+	// digitalWrite(_cs, LOW);
+	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_CS_PORT, NOKIA5110_GPIO_CS_PIN,(bool)false);
+  	spiWrite(c);
+	// digitalWrite(_cs, HIGH);
+	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_CS_PORT, NOKIA5110_GPIO_CS_PIN,(bool)true);
 }
 
 void data(uint8_t c) {
-  digitalWrite(_dc, HIGH);
-  if (_cs > 0)
-    digitalWrite(_cs, LOW);
-  spiWrite(c);
-  if (_cs > 0)
-    digitalWrite(_cs, HIGH);
+  	// digitalWrite(_dc, HIGH);
+  	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_CD_PORT, NOKIA5110_GPIO_CD_PIN,(bool)true);
+  	
+	// digitalWrite(_cs, LOW);
+	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_CS_PORT, NOKIA5110_GPIO_CS_PIN,(bool)false);
+		spiWrite(c);
+	// digitalWrite(_cs, HIGH);
+	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_CS_PORT, NOKIA5110_GPIO_CS_PIN,(bool)true);
 }
 
 void setContrast(uint8_t val) {
   if (val > 0x7f) {
-    val = 0x7f;
+	val = 0x7f;
   }
   command(PCD8544_FUNCTIONSET | PCD8544_EXTENDEDINSTRUCTION );
   command( PCD8544_SETVOP | val); 
@@ -262,37 +250,37 @@ void display(void) {
   
   for(p = 0; p < 6; p++) {
 #ifdef enablePartialUpdate
-    // check if this page is part of update
-    if ( yUpdateMin >= ((p+1)*8) ) {
-      continue;   // nope, skip it!
-    }
-    if (yUpdateMax < p*8) {
-      break;
-    }
+	// check if this page is part of update
+	if ( yUpdateMin >= ((p+1)*8) ) {
+	  continue;   // nope, skip it!
+	}
+	if (yUpdateMax < p*8) {
+	  break;
+	}
 #endif
 
-    command(PCD8544_SETYADDR | p);
+	command(PCD8544_SETYADDR | p);
 
 
 #ifdef enablePartialUpdate
-    col = xUpdateMin;
-    maxcol = xUpdateMax;
+	col = xUpdateMin;
+	maxcol = xUpdateMax;
 #else
-    // start at the beginning of the row
-    col = 0;
-    maxcol = LCDWIDTH-1;
+	// start at the beginning of the row
+	col = 0;
+	maxcol = LCDWIDTH-1;
 #endif
 
-    command(PCD8544_SETXADDR | col);
+	command(PCD8544_SETXADDR | col);
 
-    digitalWrite(_dc, HIGH);
-    if (_cs > 0)
-      digitalWrite(_cs, LOW);
-    for(; col <= maxcol; col++) {
-      spiWrite(pcd8544_buffer[(LCDWIDTH*p)+col]);
-    }
-    if (_cs > 0)
-      digitalWrite(_cs, HIGH);
+	digitalWrite(_dc, HIGH);
+	if (_cs > 0)
+	  digitalWrite(_cs, LOW);
+	for(; col <= maxcol; col++) {
+	  spiWrite(pcd8544_buffer[(LCDWIDTH*p)+col]);
+	}
+	if (_cs > 0)
+	  digitalWrite(_cs, HIGH);
 
   }
 
@@ -321,15 +309,15 @@ void clearDisplay(void) {
   
   for(p = 0; p < 8; p++) {
 
-    st7565_command(CMD_SET_PAGE | p);
-    for(c = 0; c < 129; c++) {
-      //uart_putw_dec(c);
-      //uart_putchar(' ');
-      st7565_command(CMD_SET_COLUMN_LOWER | (c & 0xf));
-      st7565_command(CMD_SET_COLUMN_UPPER | ((c >> 4) & 0xf));
-      st7565_data(0x0);
-    }     
-    }
+	st7565_command(CMD_SET_PAGE | p);
+	for(c = 0; c < 129; c++) {
+	  //uart_putw_dec(c);
+	  //uart_putchar(' ');
+	  st7565_command(CMD_SET_COLUMN_LOWER | (c & 0xf));
+	  st7565_command(CMD_SET_COLUMN_UPPER | ((c >> 4) & 0xf));
+	  st7565_data(0x0);
+	}     
+	}
 
 }
 

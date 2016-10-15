@@ -52,7 +52,8 @@ All text above, and the splash screen must be included in any redistribution
 
 // Adjustments to work with the NXP LPCExpresso4337 board
 #include "board.h"
-
+#include "delay.h"
+#include <stdlib.h>
 
 #define BLACK 1
 #define WHITE 0
@@ -95,6 +96,8 @@ All text above, and the splash screen must be included in any redistribution
 #define NOKIA5110_GPIO_RESET_PORT
 #define NOKIA5110_GPIO_RESET_PIN  
 
+#define NOKIA5110_SSP_BUFFER_SIZE 1 // always sends one byte at a time
+
 #define NOKIA5110_LPC_SSP_X LPC_SSP0 // Select SSP0 or SSP1
 
 
@@ -112,7 +115,6 @@ All text above, and the splash screen must be included in any redistribution
   uint8_t getPixel(int8_t x, int8_t y);
 
   void spiWrite(uint8_t c);
-  bool isHardwareSPI();
 
 
 #endif
