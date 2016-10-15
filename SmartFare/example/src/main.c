@@ -68,8 +68,8 @@ int main(void) {
 	board_lcd_init(); //
 
 	//setupGSM();
-	setupRFID1_entrance(mfrc1);
-	//setupRFID2_exit(mfrc2);
+	setupRFID1_entrance(&mfrc1);
+	//setupRFID2_exit(&mfrc2);
 
 	change_lcd_message(START_MESSAGE);
 
@@ -128,12 +128,14 @@ void setupGSM() {
 
 void userTapIn() {
 
-	// // show card UID
-	// DEBUGOUT("Card uid: ");
-	// for (uint8_t i = 0; i < mfrc1->uid.size; i++) {
-	// 	DEBUGOUT(" %X", mfrc1->uid.uidByte[i]);
-	// }
-	// DEBUGOUT("\n\r");
+
+	// show card UID
+	DEBUGOUT("Card uid: ");
+	for (uint8_t i = 0; i < mfrc1->uid.size; i++) {
+		DEBUGOUT(" %X", mfrc1->uid.uidByte[i]);
+	}
+	DEBUGOUT("\n\r");
+
 
 	// Convert the uid bytes to an integer, byte[0] is the MSB
 	last_user_ID =

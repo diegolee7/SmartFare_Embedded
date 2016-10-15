@@ -103,43 +103,43 @@ static int writeCardBlock(MFRC522Ptr_t mfrc522, uint8_t sector,
  * Public Functions
  ****************************************/
 
-void setupRFID1_entrance(MFRC522Ptr_t mfrc1) {
-	mfrc1 = MFRC522_Init();
+void setupRFID1_entrance(MFRC522Ptr_t* mfrc1) {
+	*mfrc1 = MFRC522_Init();
 	// Define the pins to use as CS(SS or SSEL) and RST
 	Chip_SCU_PinMuxSet(0x1, 12,
 					   (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as GPIO
 	Chip_SCU_PinMuxSet(0x1, 10,
 					   (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as GPIO
 	// GPIO1[12]= P2_12
-	mfrc1->_chipSelectPin.port = 1;
-	mfrc1->_chipSelectPin.pin = 12;
+	(*mfrc1)->_chipSelectPin.port = 1;
+	(*mfrc1)->_chipSelectPin.pin = 12;
 	// GPIO1[10]= P2_9
-	mfrc1->_resetPowerDownPin.port = 1;
-	mfrc1->_resetPowerDownPin.pin = 10;
-	PCD_Init(mfrc1, LPC_SSP1);
+	(*mfrc1)->_resetPowerDownPin.port = 1;
+	(*mfrc1)->_resetPowerDownPin.pin = 10;
+	PCD_Init(*mfrc1, LPC_SSP1);
 	DEBUGOUT("Reader 1 ");
 	PCD_DumpVersionToSerial(
-		mfrc1); // Show details of PCD - MFRC522 Card Reader details
+		*mfrc1); // Show details of PCD - MFRC522 Card Reader details
 }
 
-void setupRFID2_exit(MFRC522Ptr_t mfrc2) {
+void setupRFID2_exit(MFRC522Ptr_t* mfrc2) {
 	// Repeat config for RFID reader 2
-	mfrc2 = MFRC522_Init();
+	*mfrc2 = MFRC522_Init();
 	// Define the pins to use as CS(SS or SSEL) and RST
 	Chip_SCU_PinMuxSet(0x1, 0, (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as
 																   // GPIO
 	Chip_SCU_PinMuxSet(0x5, 02,
 					   (SCU_PINIO_FAST | SCU_MODE_FUNC4)); // Set as GPIO
 	// GPIO1[0]= P1_07
-	mfrc2->_chipSelectPin.port = 1;
-	mfrc2->_chipSelectPin.pin = 0;
+	(*mfrc2)->_chipSelectPin.port = 1;
+	(*mfrc2)->_chipSelectPin.pin = 0;
 	// GPIO5[02]= P2_02
-	mfrc2->_resetPowerDownPin.port = 5;
-	mfrc2->_resetPowerDownPin.pin = 2;
-	PCD_Init(mfrc2, LPC_SSP0);
+	(*mfrc2)->_resetPowerDownPin.port = 5;
+	(*mfrc2)->_resetPowerDownPin.pin = 2;
+	PCD_Init(*mfrc2, LPC_SSP0);
 	DEBUGOUT("Reader 2 ");
 	PCD_DumpVersionToSerial(
-		mfrc2); // Show details of PCD - MFRC522 Card Reader details
+		*mfrc2); // Show details of PCD - MFRC522 Card Reader details
 }
 
 /**

@@ -11,8 +11,8 @@
 #include "board.h"
 #include "MFRC522.h"
 
-void setupRFID1_entrance(MFRC522Ptr_t mrfc1);
-void setupRFID2_exit(MFRC522Ptr_t mfrc2);
+void setupRFID1_entrance(MFRC522Ptr_t* mrfc1);
+void setupRFID2_exit(MFRC522Ptr_t* mfrc2);
 int readCardBalance(MFRC522Ptr_t mfrc522);
 int writeCardBalance(MFRC522Ptr_t mfrc522, int newBalance);
 
