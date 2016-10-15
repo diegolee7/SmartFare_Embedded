@@ -39,6 +39,11 @@ void generateSmartFareJSON(UserInfo_T *userInfo, char *jsonString) {
 }
 
 void generateTimestampString(RTC_TIME_T *rtc_time_t, char *timestampString) {
-    // TODO generate timestamp
-    timestampString[0] = 0;
+    sprintf(timestampString, "%.4d-%.2d-%.2dT%.2d:%.2d:%.2d",
+        pTime->time[RTC_TIMETYPE_YEAR],
+        pTime->time[RTC_TIMETYPE_MONTH],
+        pTime->time[RTC_TIMETYPE_DAYOFMONTH],
+        pTime->time[RTC_TIMETYPE_HOUR],
+        pTime->time[RTC_TIMETYPE_MINUTE],
+        pTime->time[RTC_TIMETYPE_SECOND]);
 }
