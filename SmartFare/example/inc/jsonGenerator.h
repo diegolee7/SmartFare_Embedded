@@ -12,6 +12,5 @@
 #include "SmartFareData.h"
 
 void generateSmartFareJSON(UserInfo_T *userInfo, char *jsonString);
-void generateTimestampString(RTC_TIME_T *rtc_time_t, char *timestampString);
 
 #endif

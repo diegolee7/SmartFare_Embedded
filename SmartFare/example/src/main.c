@@ -19,6 +19,7 @@
 #include "rfid_utils.h"
 #include "MFRC522.h"
 #include "rtc.h"
+#include "jsonGenerator.h"
 
 /**********************************
  *  Extra functions defined in the main.c file
@@ -29,6 +30,7 @@ void userTapIn();
 void userTapOut();
 int getUserByID(unsigned int userID);
 void addNewUser(unsigned int userID);
+void saveTapInData();
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -48,6 +50,9 @@ MFRC522Ptr_t mfrc2;
 
 // buffer to store the active users in the system. Onboard passengers
 static UserInfo_T usersBuffer[USER_BUFFER_SIZE];
+
+static char jsonString[400];
+static UserInfo_T userInfo;
 
 /**
  * @brief	Main program body
@@ -88,6 +93,7 @@ int main(void) {
 			// Select one of the cards
 			if (PICC_ReadCardSerial(mfrc1)) {
 				userTapIn();
+				saveTapInData();
 			}
 		}
 
@@ -132,7 +138,6 @@ void setupGSM() {
  **********************************/
 
 void userTapIn() {
-
 
 	// show card UID
 	DEBUGOUT("Card uid: ");
@@ -180,6 +185,24 @@ void userTapOut() {
 	// TODO
 }
 
+void saveTapInData() {
+
+	userInfo.userId = 1;
+	userInfo.vehicleId = 1;
+	userInfo.fare = 1;
+	userInfo.balance = 1;
+	userInfo.distance = 1;
+	userInfo.inOdometerMeasure = 1;
+	userInfo.inTimestamp = FullTime;
+	userInfo.inLatitude = 1;
+	userInfo.inLongitude = 1;
+	userInfo.outOdometerMeasure = 1;
+	userInfo.outTimestamp = FullTime;
+	userInfo.outLatitude = 1;
+	userInfo.outLongitude = 1;
+
+	generateSmartFareJSON(&userInfo, jsonString);
+}
 /**********************************
  *  Some util functions
  **********************************/

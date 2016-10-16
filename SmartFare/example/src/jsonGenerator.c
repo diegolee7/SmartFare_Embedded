@@ -3,7 +3,7 @@
 
 void generateSmartFareJSON(UserInfo_T *userInfo, char *jsonString) {
 	char auxString[20];
-	char timestampAuxString[30];
+	char timestampString[30];
 	sprintf(jsonString, "{\"userId\":\"%d\",", userInfo->userId);
 	sprintf(auxString, "\"vehicleId\":\"%d\",", userInfo->vehicleId);
 	strcat(jsonString, auxString);
@@ -16,34 +16,41 @@ void generateSmartFareJSON(UserInfo_T *userInfo, char *jsonString) {
 	sprintf(auxString, "\"inOdometerMeasure\":\"%d\",",
 			userInfo->inOdometerMeasure);
 	strcat(jsonString, auxString);
-	generateTimestampString(&userInfo->inTimestamp, timestampAuxString);
-	sprintf(auxString, "\"inTimestamp\":\"%s\",", timestampAuxString);
+	//generateTimestampString(&userInfo->inTimestamp, timestampAuxString);
+	sprintf(timestampString, "%.4d-%.2d-%.2dT%.2d:%.2d:%.2d",
+		userInfo->inTimestamp.time[RTC_TIMETYPE_YEAR],
+		userInfo->inTimestamp.time[RTC_TIMETYPE_MONTH],
+		userInfo->inTimestamp.time[RTC_TIMETYPE_DAYOFMONTH],
+		userInfo->inTimestamp.time[RTC_TIMETYPE_HOUR],
+		userInfo->inTimestamp.time[RTC_TIMETYPE_MINUTE],
+		userInfo->inTimestamp.time[RTC_TIMETYPE_SECOND]);
+	sprintf(auxString, "\"inTimestamp\":\"%s\",", timestampString);
 	strcat(jsonString, auxString);
-	sprintf(auxString, "\"inLatitude\":\"%d\",", userInfo->inLatitude);
+	sprintf(auxString, "\"inLatitude\":\"%f\",", userInfo->inLatitude);
 	strcat(jsonString, auxString);
-	sprintf(auxString, "\"inLongitude\":\"%d\",", userInfo->inLongitude);
+	sprintf(auxString, "\"inLongitude\":\"%f\",", userInfo->inLongitude);
 	strcat(jsonString, auxString);
 	sprintf(auxString, "\"outOdometerMeasure\":\"%d\",",
 			userInfo->outOdometerMeasure);
 	strcat(jsonString, auxString);
-	generateTimestampString(&userInfo->outTimestamp, timestampAuxString);
-	sprintf(auxString, "\"ouTimestamp\":\"%s\",", timestampAuxString);
-	strcat(jsonString, auxString);
-	sprintf(auxString, "\"outLatitude\":\"%d\",", userInfo->outLatitude);
-	strcat(jsonString, auxString);
-	sprintf(auxString, "\"outLongitude\":\"%d\"}", userInfo->outLongitude);
-	strcat(jsonString, auxString);
-
-	DEBUGOUT("\nJSON String generated:\n");
-	DEBUGOUT(jsonString);
-}
-
-void generateTimestampString(RTC_TIME_T *rtc_time_t, char *timestampString) {
+	//generateTimestampString(&userInfo->outTimestamp, timestampAuxString);
 	sprintf(timestampString, "%.4d-%.2d-%.2dT%.2d:%.2d:%.2d",
-			rtc_time_t->time[RTC_TIMETYPE_YEAR],
-			rtc_time_t->time[RTC_TIMETYPE_MONTH],
-			rtc_time_t->time[RTC_TIMETYPE_DAYOFMONTH],
-			rtc_time_t->time[RTC_TIMETYPE_HOUR],
-			rtc_time_t->time[RTC_TIMETYPE_MINUTE],
-			rtc_time_t->time[RTC_TIMETYPE_SECOND]);
+		userInfo->outTimestamp.time[RTC_TIMETYPE_YEAR],
+		userInfo->outTimestamp.time[RTC_TIMETYPE_MONTH],
+		userInfo->outTimestamp.time[RTC_TIMETYPE_DAYOFMONTH],
+		userInfo->outTimestamp.time[RTC_TIMETYPE_HOUR],
+		userInfo->outTimestamp.time[RTC_TIMETYPE_MINUTE],
+		userInfo->outTimestamp.time[RTC_TIMETYPE_SECOND]);
+	sprintf(auxString, "\"ouTimestamp\":\"%s\",", timestampString);
+	sprintf(auxString, "\"outTimestamp\":\"%s\",", "Teste tempo");
+	strcat(jsonString, auxString);
+	sprintf(auxString, "\"outLatitude\":\"%f\",", userInfo->outLatitude);
+	strcat(jsonString, auxString);
+	sprintf(auxString, "\"outLongitude\":\"%f\"}", userInfo->outLongitude);
+	strcat(jsonString, auxString);
+
+	DEBUGOUT("\nJSON String size: %d",strlen(jsonString));
+	DEBUGOUT("\nJSON String generated:\n");
+	DEBUGOUT("%s",jsonString);
 }
+

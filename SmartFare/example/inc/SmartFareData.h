@@ -14,6 +14,7 @@
  * Public types/enumerations/variables
  ****************************************************************************/
 
+
 // Structure used to store user Data
 typedef struct {
 	unsigned int userId; // the PICC used stores a 4 byte user ID
@@ -50,5 +51,6 @@ static const int min_balance = 300;
 volatile float latitude;
 volatile float longitude;
 volatile unsigned int odometer_Value;
+UserInfo_T userInfoArray[10];
 
 #endif /* INC_SMARTFAREDATA_H_ */
