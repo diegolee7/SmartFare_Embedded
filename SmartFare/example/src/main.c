@@ -19,6 +19,7 @@
 #include "rfid_utils.h"
 #include "MFRC522.h"
 #include "rtc.h"
+#include "jsonGenerator.h"
 
 /**********************************
  *  Extra functions defined in the main.c file
@@ -29,13 +30,14 @@ void userTapIn();
 void userTapOut();
 int getUserByID(unsigned int userID);
 void addNewUser(unsigned int userID);
+void saveTapInData();
 
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
 // temporary variables
 int last_balance = 0;
-unsigned int last_user_ID;
+unsigned int last_user_Id;
 int usersBufferIndex = 0;
 
 /*****************************************************************************
@@ -48,6 +50,9 @@ MFRC522Ptr_t mfrc2;
 
 // buffer to store the active users in the system. Onboard passengers
 static UserInfo_T usersBuffer[USER_BUFFER_SIZE];
+
+static char jsonString[400];
+static UserInfo_T userInfo;
 
 /**
  * @brief	Main program body
@@ -88,6 +93,7 @@ int main(void) {
 			// Select one of the cards
 			if (PICC_ReadCardSerial(mfrc1)) {
 				userTapIn();
+				saveTapInData();
 			}
 		}
 
@@ -133,7 +139,6 @@ void setupGSM() {
 
 void userTapIn() {
 
-
 	// show card UID
 	DEBUGOUT("Card uid: ");
 	for (uint8_t i = 0; i < mfrc1->uid.size; i++) {
@@ -143,15 +148,15 @@ void userTapIn() {
 
 
 	// Convert the uid bytes to an integer, byte[0] is the MSB
-	last_user_ID =
+	last_user_Id =
 		(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
 		(int)mfrc1->uid.uidByte[1] << 16 | (int)mfrc1->uid.uidByte[0] << 24;
 
 	// Search for the uID in the usersBuffer
-	int userIndex = getUserByID(last_user_ID);
+	int userIndex = getUserByID(last_user_Id);
 	if (userIndex == -1) {
 		// Register user in the buffer
-		addNewUser(last_user_ID);
+		addNewUser(last_user_Id);
 	} else {
 		// user is already onboard
 		change_lcd_message(USTATUS_UNAUTHORIZED);
@@ -168,7 +173,7 @@ void userTapIn() {
 			change_lcd_message(USTATUS_INSUF_BALANCE);
 			PCD_Init(mfrc1, LPC_SSP1);
 		} else {
-			set_lcd_last_userID(last_user_ID);
+			set_lcd_last_userID(last_user_Id);
 			set_lcd_balance(last_balance);
 			change_lcd_message(USTATUS_AUTHORIZED);
 			PCD_Init(mfrc1, LPC_SSP1);
@@ -180,6 +185,24 @@ void userTapOut() {
 	// TODO
 }
 
+void saveTapInData() {
+
+	userInfo.userId = 1;
+	userInfo.vehicleId = 1;
+	userInfo.fare = 1;
+	userInfo.balance = 1;
+	userInfo.distance = 1;
+	userInfo.inOdometerMeasure = 1;
+	userInfo.inTimestamp = FullTime;
+	userInfo.inLatitude = 1;
+	userInfo.inLongitude = 1;
+	userInfo.outOdometerMeasure = 1;
+	userInfo.outTimestamp = FullTime;
+	userInfo.outLatitude = 1;
+	userInfo.outLongitude = 1;
+
+	generateSmartFareJSON(&userInfo, jsonString);
+}
 /**********************************
  *  Some util functions
  **********************************/
@@ -189,12 +212,12 @@ void userTapOut() {
  * @param  userID the iD to search for
  * @return        the index of the user in the usersBuffer
  */
-int getUserByID(unsigned int userID) {
+int getUserByID(unsigned int userId) {
 
 	int i;
 
 	for (i = 0; i < USER_BUFFER_SIZE; i++) {
-		if (userID == usersBuffer[i].userID) {
+		if (userId == usersBuffer[i].userId) {
 			return i;
 		}
 	}
@@ -207,9 +230,9 @@ int getUserByID(unsigned int userID) {
  * usersBuffer
  * @param userID user unique identification number in the system
  */
-void addNewUser(unsigned int userID) {
+void addNewUser(unsigned int userId) {
 	UserInfo_T new_user;
-	new_user.userID = userID;
+	new_user.userId = userId;
 
 	// add user to usersBuffer
 	usersBuffer[usersBufferIndex] = new_user;
