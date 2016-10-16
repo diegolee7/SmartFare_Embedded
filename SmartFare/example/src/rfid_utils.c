@@ -128,14 +128,14 @@ void setupRFID2_exit(MFRC522Ptr_t* mfrc2) {
 	// Define the pins to use as CS(SS or SSEL) and RST
 	Chip_SCU_PinMuxSet(0x1, 0, (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as
 																   // GPIO
-	Chip_SCU_PinMuxSet(0x5, 02,
-					   (SCU_PINIO_FAST | SCU_MODE_FUNC4)); // Set as GPIO
+	Chip_SCU_PinMuxSet(0x1, 13,
+					   (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as GPIO
 	// GPIO1[0]= P1_07
 	(*mfrc2)->_chipSelectPin.port = 1;
 	(*mfrc2)->_chipSelectPin.pin = 0;
-	// GPIO5[02]= P2_02
-	(*mfrc2)->_resetPowerDownPin.port = 5;
-	(*mfrc2)->_resetPowerDownPin.pin = 2;
+	// GPIO1[13]= P2_13
+	(*mfrc2)->_resetPowerDownPin.port = 1;
+	(*mfrc2)->_resetPowerDownPin.pin = 13;
 	PCD_Init(*mfrc2, LPC_SSP0);
 	DEBUGOUT("Reader 2 ");
 	PCD_DumpVersionToSerial(

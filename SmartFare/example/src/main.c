@@ -76,7 +76,7 @@ int main(void) {
 	//setupGSM();
 	setupRTC();
 	setupRFID1_entrance(&mfrc1);
-	//setupRFID2_exit(&mfrc2);
+	setupRFID2_exit(&mfrc2);
 
 	change_lcd_message(START_MESSAGE);
 
@@ -97,7 +97,7 @@ int main(void) {
 			}
 		}
 
-		/*
+
 		// Look for new cards in RFID2
 		if (PICC_IsNewCardPresent(mfrc2)) {
 			// Select one of the cards
@@ -105,7 +105,7 @@ int main(void) {
 				userTapOut();
 			}
 		}
-		*/
+
 
 		// Calculate fare based on vehicle movement
 		// Update user data
