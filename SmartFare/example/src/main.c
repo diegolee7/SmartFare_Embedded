@@ -72,13 +72,12 @@ int main(void) {
 
 	// Init shield lcd, and SSP interface pins
 	board_lcd_init(); //
+	change_lcd_message(START_MESSAGE);
 
 	//setupGSM();
 	setupRTC();
 	setupRFID1_entrance(&mfrc1);
 	setupRFID2_exit(&mfrc2);
-
-	change_lcd_message(START_MESSAGE);
 
 	// Every LCD message changes the SSP configuration, must configure it for
 	// the RFID again
