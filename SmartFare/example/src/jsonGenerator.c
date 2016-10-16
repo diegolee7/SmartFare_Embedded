@@ -16,7 +16,6 @@ void generateSmartFareJSON(UserInfo_T *userInfo, char *jsonString) {
 	sprintf(auxString, "\"inOdometerMeasure\":\"%d\",",
 			userInfo->inOdometerMeasure);
 	strcat(jsonString, auxString);
-	//generateTimestampString(&userInfo->inTimestamp, timestampAuxString);
 	sprintf(timestampString, "%.4d-%.2d-%.2dT%.2d:%.2d:%.2d",
 		userInfo->inTimestamp.time[RTC_TIMETYPE_YEAR],
 		userInfo->inTimestamp.time[RTC_TIMETYPE_MONTH],
@@ -33,7 +32,6 @@ void generateSmartFareJSON(UserInfo_T *userInfo, char *jsonString) {
 	sprintf(auxString, "\"outOdometerMeasure\":\"%d\",",
 			userInfo->outOdometerMeasure);
 	strcat(jsonString, auxString);
-	//generateTimestampString(&userInfo->outTimestamp, timestampAuxString);
 	sprintf(timestampString, "%.4d-%.2d-%.2dT%.2d:%.2d:%.2d",
 		userInfo->outTimestamp.time[RTC_TIMETYPE_YEAR],
 		userInfo->outTimestamp.time[RTC_TIMETYPE_MONTH],
@@ -42,7 +40,6 @@ void generateSmartFareJSON(UserInfo_T *userInfo, char *jsonString) {
 		userInfo->outTimestamp.time[RTC_TIMETYPE_MINUTE],
 		userInfo->outTimestamp.time[RTC_TIMETYPE_SECOND]);
 	sprintf(auxString, "\"ouTimestamp\":\"%s\",", timestampString);
-	sprintf(auxString, "\"outTimestamp\":\"%s\",", "Teste tempo");
 	strcat(jsonString, auxString);
 	sprintf(auxString, "\"outLatitude\":\"%f\",", userInfo->outLatitude);
 	strcat(jsonString, auxString);
