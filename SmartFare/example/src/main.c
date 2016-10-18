@@ -40,6 +40,8 @@ int last_balance = 0;
 unsigned int last_user_Id;
 int usersBufferIndex = 0;
 
+uint8_t counter_saida = 0;
+
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -74,7 +76,7 @@ int main(void) {
 	board_lcd_init(); //
 
 	//setupGSM();
-	setupRTC();
+	//setupRTC();
 	setupRFID1_entrance(&mfrc1);
 	setupRFID2_exit(&mfrc2);
 
@@ -179,10 +181,21 @@ void userTapIn() {
 			PCD_Init(mfrc1, LPC_SSP1);
 		}
 	}
+	delay_ms(3000);
 }
 
 void userTapOut() {
-	// TODO
+
+	if (counter_saida) {
+		counter_saida = 0;
+		set_lcd_balance(-70);
+		change_lcd_message(USTATUS_TAP_OUT_LOW_BALANCE);
+	} else {
+		counter_saida = 1;
+		set_lcd_balance(2340);
+		change_lcd_message(USTATUS_TAP_OUT);
+	}
+	delay_ms(3000);
 }
 
 void saveTapInData() {
