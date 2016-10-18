@@ -44,6 +44,7 @@ int usersBufferIndex = 0;
 MFRC522Ptr_t mfrc1;
 MFRC522Ptr_t mfrc2;
 
+
 // buffer to store the active users in the system. Onboard passengers
 static UserInfo_T usersBuffer[USER_BUFFER_SIZE];
 

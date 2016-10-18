@@ -93,13 +93,15 @@ All text above, and the splash screen must be included in any redistribution
 #define NOKIA5110_GPIO_CS_PORT 1
 #define NOKIA5110_GPIO_CS_PIN 13
 // RESET = P4_3 = GPIO2[3]
-#define NOKIA5110_GPIO_RESET_PORT
-#define NOKIA5110_GPIO_RESET_PIN  
+#define NOKIA5110_GPIO_RESET_PORT 2
+#define NOKIA5110_GPIO_RESET_PIN  3
 
 #define NOKIA5110_SSP_BUFFER_SIZE 1 // always sends one byte at a time
 
 #define NOKIA5110_LPC_SSP_X LPC_SSP0 // Select SSP0 or SSP1
 
+
+  void Nokia5110_Init(); //constructor
 
   // void begin(uint8_t contrast = 40, uint8_t bias = 0x04);
     void begin(uint8_t contrast, uint8_t bias);

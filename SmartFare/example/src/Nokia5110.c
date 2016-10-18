@@ -17,12 +17,15 @@ All text above, and the splash screen below must be included in any redistributi
 *********************************************************************/
 
 #include "nokia5110.h"
-// #include "Adafruit_GFX.h"
+#include "Adafruit_GFX.h"
 
 //Some structures to trasnfer data using the SSP interface
 static Chip_SSP_DATA_SETUP_T NOKIA5110_data_Setup;
 static uint8_t NOKIA_5110_Tx_Buf[NOKIA5110_SSP_BUFFER_SIZE];
 static uint8_t NOKIA_5110_Rx_Buf[NOKIA5110_SSP_BUFFER_SIZE];
+
+//Noki5110 display struct
+Adafruit_GFXPtr_t display_nokia;
 
 #ifndef _BVt
   #define _BV(x) (1 << (x))
@@ -83,7 +86,9 @@ uint8_t pcd8544_buffer[LCDWIDTH * LCDHEIGHT / 8] = {
 static uint8_t xUpdateMin, xUpdateMax, yUpdateMin, yUpdateMax;
 #endif
 
-
+void Nokia5110_Init(){
+	Adafruit_GFX_Init(LCDWIDTH, LCDHEIGHT) ;
+}
 
 static void updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t ymax) {
 #ifdef enablePartialUpdate
@@ -98,11 +103,11 @@ static void updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t 
 
 // the most basic function, set a single pixel
 void drawPixel(int16_t x, int16_t y, uint16_t color) {
-  if ((x < 0) || (x >= _width) || (y < 0) || (y >= _height))
+  if ((x < 0) || (x >= display_nokia->_width) || (y < 0) || (y >= display_nokia_height))
 	return;
 
   int16_t t;
-  switch(rotation){
+  switch(display_nokia->rotation){
 	case 1:
 	  t = x;
 	  x = y;
@@ -274,15 +279,17 @@ void display(void) {
 
 	command(PCD8544_SETXADDR | col);
 
-	digitalWrite(_dc, HIGH);
-	if (_cs > 0)
-	  digitalWrite(_cs, LOW);
+	// digitalWrite(_dc, HIGH);
+	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_CD_PORT, NOKIA5110_GPIO_CD_PIN,(bool)true);
+
+	  // digitalWrite(_cs, LOW);
+  	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_CS_PORT, NOKIA5110_GPIO_CS_PIN,(bool)false);	  
 	for(; col <= maxcol; col++) {
 	  spiWrite(pcd8544_buffer[(LCDWIDTH*p)+col]);
 	}
-	if (_cs > 0)
-	  digitalWrite(_cs, HIGH);
 
+	  // digitalWrite(_cs, HIGH);
+  	Chip_GPIO_SetPinState(LPC_GPIO_PORT, NOKIA5110_GPIO_CS_PORT, NOKIA5110_GPIO_CS_PIN,(bool)true);
   }
 
   command(PCD8544_SETYADDR );  // no idea why this is necessary but it is to finish the last byte?
@@ -299,7 +306,7 @@ void display(void) {
 void clearDisplay(void) {
   memset(pcd8544_buffer, 0, LCDWIDTH*LCDHEIGHT/8);
   updateBoundingBox(0, 0, LCDWIDTH-1, LCDHEIGHT-1);
-  cursor_y = cursor_x = 0;
+  display_nokia->cursor_y = display_nokia->cursor_x = 0;
 }
 
 /*
