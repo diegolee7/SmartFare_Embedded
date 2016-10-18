@@ -17,6 +17,7 @@
 #include "SmartFareData.h"
 #include "SIM800.h"
 #include "RFIDUtils.h"
+ #include "Nokia5110.h"
 
 /**********************************
  *  Extra functions defined in the main.c file
@@ -64,6 +65,21 @@ int main(void) {
 
 	// init shield lcd, and SSP interface pins
 	board_lcd_init(); //
+
+	Nokia5110_Init();
+  	Nokia5110_ClearBuffer();
+	Nokia5110_DisplayBuffer();      // draw buffer
+	Nokia5110_Clear();
+	Nokia5110_SetCursor(1, 1);
+	Nokia5110_OutString("GAME OVER");
+	Nokia5110_SetCursor(1, 2);
+	Nokia5110_OutString("Nice try,");
+	Nokia5110_SetCursor(1, 3);
+	Nokia5110_OutString("Earthling!");
+	Nokia5110_SetCursor(2, 4);
+	Nokia5110_OutUDec(1234);
+	  Nokia5110_ClearBuffer();
+		Nokia5110_DisplayBuffer();      // draw buffer
 
 	// setupGSM();
 	setupRFID();

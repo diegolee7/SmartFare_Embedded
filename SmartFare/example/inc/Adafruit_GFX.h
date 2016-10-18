@@ -43,8 +43,10 @@ struct Adafruit_GFX_T{
 typedef struct Adafruit_GFX_T *Adafruit_GFXPtr_t;
 
 
+// returns a pointer to ADT struct
+Adafruit_GFXPtr_t Adafruit_GFX_Init(int16_t w, int16_t h); // Constructor
 
-void Adafruit_GFX_Init(int16_t w, int16_t h); // Constructor
+ void drawPixel(int16_t x, int16_t y, uint16_t color);
 
   //Text funtions
   void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color,
