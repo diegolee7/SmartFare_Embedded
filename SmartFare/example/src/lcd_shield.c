@@ -57,7 +57,7 @@ void change_lcd_message(int message_code) {
 
 	case START_MESSAGE:
 		write_lcd_text(1, "Bem Vindo!");
-		write_lcd_text(2, "SmartFare");
+		write_lcd_text(3, "Passe o cartao");
 		sprintf(string, "  ");
 		write_lcd_text(4, string);
 		break;
@@ -78,14 +78,12 @@ void change_lcd_message(int message_code) {
 
 	case USTATUS_AUTHORIZED:
 		write_lcd_text(2, "Boa viagem");
-		sprintf(string, "Saldo:");
-		write_lcd_text(3, string);
-		print_balance(4, lcd_balance);
+		print_balance(3, lcd_balance);
 		break;
 
 	case USTATUS_TAP_OUT:
-		sprintf(string, "Tarifa: %d", travel_fare);
-		write_lcd_text(2, string);
+		sprintf(string, "Tarifa: 3,70");
+		write_lcd_text(1, string);
 		print_balance(3, lcd_balance);
 		sprintf(string, "  ");
 		write_lcd_text(4, string);

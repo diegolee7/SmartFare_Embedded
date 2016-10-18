@@ -148,7 +148,7 @@ void userTapIn() {
 	}
 	DEBUGOUT("\n\r");
 
-
+	/*
 	// Convert the uid bytes to an integer, byte[0] is the MSB
 	last_user_Id =
 		(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
@@ -181,21 +181,19 @@ void userTapIn() {
 			PCD_Init(mfrc1, LPC_SSP1);
 		}
 	}
-	delay_ms(3000);
+	*/
+	set_lcd_balance(2340);
+	change_lcd_message(USTATUS_AUTHORIZED);
+	delay_ms(2000);
+	change_lcd_message(START_MESSAGE);
 }
 
 void userTapOut() {
 
-	if (counter_saida) {
-		counter_saida = 0;
-		set_lcd_balance(-70);
-		change_lcd_message(USTATUS_TAP_OUT_LOW_BALANCE);
-	} else {
-		counter_saida = 1;
-		set_lcd_balance(2340);
-		change_lcd_message(USTATUS_TAP_OUT);
-	}
-	delay_ms(3000);
+	set_lcd_balance(1970);
+	change_lcd_message(USTATUS_TAP_OUT);
+	delay_ms(2000);
+	change_lcd_message(START_MESSAGE);
 }
 
 void saveTapInData() {
