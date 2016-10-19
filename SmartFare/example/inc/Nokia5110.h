@@ -64,18 +64,18 @@
 #include <string.h>
 
 // This can be modified to change the clock speed if necessary (like for supporting other hardware).
-#define NOKIA5110_BIT_RATE 4000000 // Defined as 4MHz in the original library  
+#define NOKIA5110_BIT_RATE 4000000 // Defined as 4MHz in the original library
 
 //Display pin setup, always check board schematics to set this pins
 // CD = P1_8 = GPIO1[11]
 #define NOKIA5110_GPIO_CD_PORT 1
 #define NOKIA5110_GPIO_CD_PIN 1
 // CS = P2_2 = GPIO5[2] (FUNC4) , P2_13 = GPIO1[13] (FUNC0)
-#define NOKIA5110_GPIO_CS_PORT 1
-#define NOKIA5110_GPIO_CS_PIN 13
+#define NOKIA5110_GPIO_CS_PORT 5
+#define NOKIA5110_GPIO_CS_PIN 5
 // RESET = P2_5 = GPIO5[5]
-#define NOKIA5110_GPIO_RESET_PORT 5
-#define NOKIA5110_GPIO_RESET_PIN  5
+#define NOKIA5110_GPIO_RESET_PORT 1
+#define NOKIA5110_GPIO_RESET_PIN  13
 
 #define NOKIA5110_SSP_BUFFER_SIZE 1 // always sends one byte at a time
 
