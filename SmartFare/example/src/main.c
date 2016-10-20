@@ -77,19 +77,19 @@ int main(void) {
 
 	//setupGSM();
 	//setupRTC();
-	setupRFID1_entrance(&mfrc1);
+	//setupRFID1_entrance(&mfrc1);
 	setupRFID2_exit(&mfrc2);
 
 	change_lcd_message(START_MESSAGE);
 
 	// Every LCD message changes the SSP configuration, must configure it for
 	// the RFID again
-	PCD_Init(mfrc1, LPC_SSP1);
+	//PCD_Init(mfrc1, LPC_SSP1);
 
 	while (1) {
 
 		updateClockRTC();
-
+/*
 		// Look for new cards in RFID1
 		if (PICC_IsNewCardPresent(mfrc1)) {
 			// Select one of the cards
@@ -98,7 +98,7 @@ int main(void) {
 				saveTapInData();
 			}
 		}
-
+*/
 
 		// Look for new cards in RFID2
 		if (PICC_IsNewCardPresent(mfrc2)) {
