@@ -77,7 +77,7 @@ void change_lcd_message(int message_code) {
 		break;
 
 	case USTATUS_AUTHORIZED:
-		write_lcd_text(2, "Boa viagem");
+		write_lcd_text(1, "Boa Viagem!");
 		print_balance(3, lcd_balance);
 		break;
 
@@ -101,9 +101,9 @@ void change_lcd_message(int message_code) {
 
 void print_balance(uint8_t line, int balance) {
 	if (balance < 0) {
-		sprintf(string, "Saldo: -%d,%d", 0-balance/100, 0-balance%100);
+		sprintf(string, "Saldo: -%d,%.2d", 0-balance/100, 0-balance%100);
 	} else {
-		sprintf(string, "Saldo: %d,%d", balance/100,balance%100);
+		sprintf(string, "Saldo: %d,%.2d", balance/100,balance%100);
 	}
 
 	write_lcd_text(line, string);

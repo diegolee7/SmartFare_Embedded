@@ -37,10 +37,14 @@ void saveTapInData();
  ****************************************************************************/
 // temporary variables
 int last_balance = 0;
-unsigned int last_user_Id;
+unsigned int last_user_ID;
 int usersBufferIndex = 0;
 
-uint8_t counter_saida = 0;
+//Temporary variables
+unsigned int userID_1 = 2092088836;
+unsigned int userID_2 = 1404324234;
+uint8_t tapin_flag = 0;
+
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -150,15 +154,15 @@ void userTapIn() {
 
 	/*
 	// Convert the uid bytes to an integer, byte[0] is the MSB
-	last_user_Id =
+	last_user_ID =
 		(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
 		(int)mfrc1->uid.uidByte[1] << 16 | (int)mfrc1->uid.uidByte[0] << 24;
 
 	// Search for the uID in the usersBuffer
-	int userIndex = getUserByID(last_user_Id);
+	int userIndex = getUserByID(last_user_ID);
 	if (userIndex == -1) {
 		// Register user in the buffer
-		addNewUser(last_user_Id);
+		addNewUser(last_user_ID);
 	} else {
 		// user is already onboard
 		change_lcd_message(USTATUS_UNAUTHORIZED);
@@ -175,7 +179,7 @@ void userTapIn() {
 			change_lcd_message(USTATUS_INSUF_BALANCE);
 			PCD_Init(mfrc1, LPC_SSP1);
 		} else {
-			set_lcd_last_userID(last_user_Id);
+			set_lcd_last_userID(last_user_ID);
 			set_lcd_balance(last_balance);
 			change_lcd_message(USTATUS_AUTHORIZED);
 			PCD_Init(mfrc1, LPC_SSP1);
@@ -190,8 +194,45 @@ void userTapIn() {
 
 void userTapOut() {
 
-	set_lcd_balance(1970);
-	change_lcd_message(USTATUS_TAP_OUT);
+	// show card UID
+	DEBUGOUT("Card uid: ");
+	for (uint8_t i = 0; i < mfrc2->uid.size; i++) {
+		DEBUGOUT(" %X", mfrc2->uid.uidByte[i]);
+	}
+	DEBUGOUT("\n\r");
+
+	// Convert the uid bytes to an integer, byte[0] is the MSB
+	last_user_ID =
+		(int)mfrc2->uid.uidByte[3] |
+		(int)mfrc2->uid.uidByte[2] << 8 |
+		(int)mfrc2->uid.uidByte[1] << 16 |
+		(int)mfrc2->uid.uidByte[0] << 24;
+
+	if (tapin_flag == 0) {
+		if (last_user_ID == userID_1) {
+			set_lcd_balance(2340);
+		} else if (last_user_ID == userID_2) {
+			set_lcd_balance(1200);
+		} else {
+			set_lcd_balance(9970);
+		}
+
+		change_lcd_message(USTATUS_AUTHORIZED);
+		tapin_flag = 1;
+	} else {
+		// user is leaving
+		if (last_user_ID == userID_1) {
+			set_lcd_balance(1970);
+		} else if (last_user_ID == userID_2) {
+			set_lcd_balance(830);
+		} else {
+			set_lcd_balance(9600);
+		}
+
+		change_lcd_message(USTATUS_TAP_OUT);
+		tapin_flag = 0;
+	}
+
 	delay_ms(2000);
 	change_lcd_message(START_MESSAGE);
 }
@@ -253,4 +294,13 @@ void addNewUser(unsigned int userId) {
 		// overwrite buffer values
 		usersBufferIndex = 0;
 	}
+}
+
+/**
+ * [removeUser  description]
+ * @param userId [description]
+ */
+void removeUser (unsigned int userId){
+
+	//TODO
 }
