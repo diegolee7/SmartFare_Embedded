@@ -1,8 +1,9 @@
 /*
  * SmartFareData.h
  *
- *  Created on: 26 de set de 2016
- *      Author: luisfg30
+ *  Created on: 2016
+ *      Author: Luis Fernando Guerreiro
+ *      		Diego Gabriel Lee
  */
 
 #ifndef INC_SMARTFAREDATA_H_

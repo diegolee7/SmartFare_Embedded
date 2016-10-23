@@ -1,3 +1,8 @@
+/*
+* jsonGenerator.c 
+* NOTE: Please also check the comments in jsonGenerator.h - they provide useful hints
+* and background information.
+*/
 #include "jsonGenerator.h"
 #include <string.h>
 

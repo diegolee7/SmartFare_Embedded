@@ -1,3 +1,8 @@
+/*
+* delay.c - Auxiliary library to use time delays 
+* NOTE: Please also check the comments in delay.h - they provide useful hints
+* and background information.
+*/
 #include "delay.h"
 
 void SysTick_Init(void) {
