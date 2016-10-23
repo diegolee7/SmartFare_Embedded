@@ -1,97 +1,18 @@
-/*
+/*   
+ *	MFRC522.h
+ *
+ *  Created on: 2016
+ *      Author: Luis Fernando Guerreiro
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *	 Check "LICENSE" file in the root folder of project
+ *	 
  * C library to be used with the NXP MFRC522 RFID module, see the datasheet at:
- *http://www.nxp.com/documents/data_sheet/MFRC522.pdf
+ * 	http://www.nxp.com/documents/data_sheet/MFRC522.pdf
  * This is an adaptation of the C++ Arduino library , available at:
- *https://github.com/miguelbalboa/rfid.git
+ * 	https://github.com/miguelbalboa/rfid.git
  * The original library is released to the public domain.
  *
- * Some extra information about  the device:
- *  * There are three hardware components involved:
- * 1) The micro controller
- * 2) The PCD (short for Proximity Coupling Device): NXP MFRC522 Contactless
- *Reader IC
- * 3) The PICC (short for Proximity Integrated Circuit Card): A card or tag
- *using the ISO 14443A interface, eg Mifare or NTAG203.
- *
- *The microcontroller and card reader uses SPI for communication.
- * The protocol is described in the MFRC522 datasheet
- * The card reader and the tags communicate using a 13.56MHz electromagnetic
- *field.
- * The protocol is defined in ISO/IEC 14443-3 Identification cards --
- *Contactless integrated circuit cards -- Proximity cards -- Part 3:
- *Initialization and anticollision".
- * A free version of the final draft can be found at
- *http://wg8.de/wg8n1496_17n3613_Ballot_FCD14443-3.pdf
- * Details are found in chapter 6, Type A – Initialization and anticollision.
- *
- * If only the PICC UID is wanted, the above documents has all the needed
- *information.
- * To read and write from MIFARE PICCs, the MIFARE protocol is used after the
- *PICC has been selected.
- * The MIFARE Classic chips and protocol is described in the datasheets:
- *		1K:   http://www.mouser.com/ds/2/302/MF1S503x-89574.pdf
- * 		4K:
- *http://datasheet.octopart.com/MF1S7035DA4,118-NXP-Semiconductors-datasheet-11046188.pdf
- * 		Mini: http://www.idcardmarket.com/download/mifare_S20_datasheet.pdf
- * The MIFARE Ultralight chip and protocol is described in the datasheets:
- *		Ultralight:   http://www.nxp.com/documents/data_sheet/MF0ICU1.pdf
- * 		Ultralight C:
- *http://www.nxp.com/documents/short_data_sheet/MF0ICU2_SDS.pdf
- *
- * 		 * MIFARE Classic 1K (MF1S503x):
- * 		Has 16 sectors * 4 blocks/sector * 16 uint8_ts/block = 1024 uint8_ts.
- * 		The blocks are numbered 0-63.
- * 		Block 3 in each sector is the Sector Trailer. See
- *http://www.mouser.com/ds/2/302/MF1S503x-89574.pdf sections 8.6 and 8.7:
- * 				uint8_ts 0-5:   Key A
- * 				uint8_ts 6-8:   Access Bits
- * 				uint8_ts 9:     User data
- * 				uint8_ts 10-15: Key B (or user data)
- * 		Block 0 is read-only manufacturer data.
- * 		To access a block, an authentication using a key from the block's sector
- *must be performed first.
- * 		Example: To read from block 10, first authenticate using a key from
- *sector 3 (blocks 8-11).
- * 		All keys are set to FFFFFFFFFFFFh at chip delivery.
- * 		Warning: Please read section 8.7 "Memory Access". It includes this text:
- *if the PICC detects a format violation the whole sector is irreversibly
- *blocked.
- *		To use a block in "value block" mode (for Increment/Decrement
- *operations)
- *you need to change the sector trailer. Use PICC_SetAccessBits() to calculate
- *the bit patterns.
- * MIFARE Classic 4K (MF1S703x):
- * 		Has (32 sectors * 4 blocks/sector + 8 sectors * 16 blocks/sector) * 16
- *uint8_ts/block = 4096 uint8_ts.
- * 		The blocks are numbered 0-255.
- * 		The last block in each sector is the Sector Trailer like above.
- * MIFARE Classic Mini (MF1 IC S20):
- * 		Has 5 sectors * 4 blocks/sector * 16 uint8_ts/block = 320 uint8_ts.
- * 		The blocks are numbered 0-19.
- * 		The last block in each sector is the Sector Trailer like above.
- *
- * MIFARE Ultralight (MF0ICU1):
- * 		Has 16 pages of 4 uint8_ts = 64 uint8_ts.
- * 		Pages 0 + 1 is used for the 7-uint8_t UID.
- * 		Page 2 contains the last check digit for the UID, one uint8_t
- *manufacturer internal data, and the lock uint8_ts (see
- *http://www.nxp.com/documents/data_sheet/MF0ICU1.pdf section 8.5.2)
- * 		Page 3 is OTP, One Time Programmable bits. Once set to 1 they cannot
- *revert to 0.
- * 		Pages 4-15 are read/write unless blocked by the lock uint8_ts in page 2.
- * MIFARE Ultralight C (MF0ICU2):
- * 		Has 48 pages of 4 uint8_ts = 192 uint8_ts.
- * 		Pages 0 + 1 is used for the 7-uint8_t UID.
- * 		Page 2 contains the last check digit for the UID, one uint8_t
- *manufacturer internal data, and the lock uint8_ts (see
- *http://www.nxp.com/documents/data_sheet/MF0ICU1.pdf section 8.5.2)
- * 		Page 3 is OTP, One Time Programmable bits. Once set to 1 they cannot
- *revert to 0.
- * 		Pages 4-39 are read/write unless blocked by the lock uint8_ts in page 2.
- * 		Page 40 Lock uint8_ts
- * 		Page 41 16 bit one way counter
- * 		Pages 42-43 Authentication configuration
- * 		Pages 44-47 Authentication key
  */
 
 #ifndef MFRC522_h
@@ -106,7 +27,11 @@ extern "C" {
 #include <stdint.h>
 #include <string.h> //some functions need NULL to be defined
 #include "delay.h"
-#define BUFFER_SIZE                                                            \
+
+/*******************************************************************************
+ * Types/enumerations/variables
+ ******************************************************************************/
+#define BUFFER_SIZE                                                            
 	1 // send only one byte per transfer, see WriteRegister functions
 #define MFRC522_BIT_RATE 4000000 // Defined as 4MHz in the original library
 #define MFRC_MAX_INSTANCES 2	 // Used for ADT object allocation
@@ -209,7 +134,7 @@ typedef enum _PCD_Command {
 	PCD_Idle = 0x00,			 // no action, cancels current command execution
 	PCD_Mem = 0x01,				 // stores 25 uint8_ts into the internal buffer
 	PCD_GenerateRandomID = 0x02, // generates a 10-uint8_t random ID number
-	PCD_CalcCRC = 0x03, // activates the CRC coprocessor or performs a self-test
+	PCD_CalcCRC = 0x03, // activates the CRC co-processor or performs a self-test
 	PCD_Transmit = 0x04,	// transmits data from the FIFO buffer
 	PCD_NoCmdChange = 0x07, // no command change, can be used to modify the
 							// CommandReg register bits without affecting the
@@ -250,11 +175,11 @@ typedef enum _PICC_Command {
 	// The commands used by the PCD to manage communication with several PICCs
 	// (ISO 14443-3, Type A, section 6.4)
 	PICC_CMD_REQA = 0x26, // REQuest command, Type A. Invites PICCs in state
-						  // IDLE to go to READY and prepare for anticollision
+						  // IDLE to go to READY and prepare for anti collision
 						  // or selection. 7 bit frame.
 	PICC_CMD_WUPA = 0x52, // Wake-UP command, Type A. Invites PICCs in state
 						  // IDLE and HALT to go to READY(*) and prepare for
-						  // anticollision or selection. 7 bit frame.
+						  // anti collision or selection. 7 bit frame.
 	PICC_CMD_CT = 0x88,   // Cascade Tag. Not really a command, but used during
 						  // anti collision.
 	PICC_CMD_SEL_CL1 = 0x93, // Anti collision/Select, Cascade Level 1
@@ -320,11 +245,11 @@ typedef enum _PICC_Type {
 // Return codes from the functions in this class. Remember to update
 // GetStatusCodeName() if you add more.
 // last value set to 0xff, then compiler uses less ram, it seems some
-// optimisations are triggered
+// optimizations are triggered
 typedef enum _StatusCode {
 	STATUS_OK,			   // Success
 	STATUS_ERROR,		   // Error in communication
-	STATUS_COLLISION,	  // Collission detected
+	STATUS_COLLISION,	  // Collision detected
 	STATUS_TIMEOUT,		   // Timeout in communication.
 	STATUS_NO_ROOM,		   // A buffer is not big enough.
 	STATUS_INTERNAL_ERROR, // Internal error in the code. Should not happen ;-)
@@ -375,9 +300,9 @@ typedef struct MFRC522_T *MFRC522Ptr_t;
 // Function to setup a MFRC522 ADT object,returns an initialized object
 MFRC522Ptr_t MFRC522_Init();
 
-/////////////////////////////////////////////////////////////////////////////////////
-// Basic interface functions for communicating with the MFRC522
-/////////////////////////////////////////////////////////////////////////////////////
+/*******************************************************************************
+* Basic interface functions for communicating with the MFRC522
+/******************************************************************************/
 void PCD_WriteRegister(MFRC522Ptr_t mfrc, uint8_t reg, uint8_t value);
 void PCD_WriteNRegister(MFRC522Ptr_t mfrc, uint8_t reg, uint8_t count,
 						uint8_t *values);
@@ -390,9 +315,9 @@ void PCD_ClearRegisterBitMask(MFRC522Ptr_t mfrc, uint8_t reg, uint8_t mask);
 StatusCode PCD_CalculateCRC(MFRC522Ptr_t mfrc, uint8_t *data, uint8_t length,
 							uint8_t *result);
 
-/////////////////////////////////////////////////////////////////////////////////////
-// Functions for manipulating the MFRC522
-/////////////////////////////////////////////////////////////////////////////////////
+/*******************************************************************************
+* Functions for manipulating the MFRC522
+/******************************************************************************/
 void PCD_Init(MFRC522Ptr_t mfrc, LPC_SSP_T *pSSP);
 void PCD_Reset(MFRC522Ptr_t mfrc);
 void PCD_AntennaOn(MFRC522Ptr_t mfrc);
@@ -400,9 +325,9 @@ void PCD_AntennaOff(MFRC522Ptr_t mfrc);
 uint8_t PCD_GetAntennaGain(MFRC522Ptr_t mfrc);
 void PCD_SetAntennaGain(MFRC522Ptr_t mfrc, uint8_t mask);
 
-/////////////////////////////////////////////////////////////////////////////////////
-// Functions for communicating with PICCs
-/////////////////////////////////////////////////////////////////////////////////////
+/*******************************************************************************
+* Functions for communicating with PICCs
+/******************************************************************************/
 StatusCode PCD_TransceiveData(MFRC522Ptr_t mfrc, uint8_t *sendData,
 							  uint8_t sendLen, uint8_t *backData,
 							  uint8_t *backLen, uint8_t *validBits,
@@ -421,9 +346,9 @@ StatusCode PICC_REQA_or_WUPA(MFRC522Ptr_t mfrc, uint8_t command,
 StatusCode PICC_Select(MFRC522Ptr_t mfrc, Uid *uid, uint8_t validBits);
 StatusCode PICC_HaltA(MFRC522Ptr_t mfrc);
 
-/////////////////////////////////////////////////////////////////////////////////////
-// Functions for communicating with MIFARE PICCs
-/////////////////////////////////////////////////////////////////////////////////////
+/*******************************************************************************
+*Functions for communicating with MIFARE PICCs
+/******************************************************************************/
 StatusCode PCD_Authenticate(MFRC522Ptr_t mfrc, uint8_t command,
 							uint8_t blockAddr, MIFARE_Key *key, Uid *uid);
 void PCD_StopCrypto1(MFRC522Ptr_t mfrc);
@@ -442,9 +367,9 @@ StatusCode MIFARE_SetValue(MFRC522Ptr_t mfrc, uint8_t blockAddr, long value);
 StatusCode PCD_NTAG216_AUTH(MFRC522Ptr_t mfrc, uint8_t *passWord,
 							uint8_t pACK[]);
 
-/////////////////////////////////////////////////////////////////////////////////////
-// Support functions
-/////////////////////////////////////////////////////////////////////////////////////
+/*******************************************************************************
+* Support functions
+/******************************************************************************/
 StatusCode PCD_MIFARE_Transceive(MFRC522Ptr_t mfrc, uint8_t *sendData,
 								 uint8_t sendLen, bool acceptTimeout);
 // static PICC_Type PICC_GetType(uint8_t sak);
@@ -471,9 +396,9 @@ bool MIFARE_SetUid(MFRC522Ptr_t mfrc, uint8_t *newUid, uint8_t uidSize,
 				   bool logErrors);
 bool MIFARE_UnbrickUidSector(MFRC522Ptr_t mfrc, bool logErrors);
 
-/////////////////////////////////////////////////////////////////////////////////////
-// Convenience functions - does not add extra functionality
-/////////////////////////////////////////////////////////////////////////////////////
+/*******************************************************************************
+* Convenience functions - does not add extra functionality
+/*******************************************************************************/
 bool PICC_IsNewCardPresent(MFRC522Ptr_t mfrc);
 bool PICC_ReadCardSerial(MFRC522Ptr_t mfrc);
 

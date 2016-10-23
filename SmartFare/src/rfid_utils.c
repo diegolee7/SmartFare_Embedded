@@ -1,10 +1,8 @@
 /*
- * rfid_manager.c
- *
- *  Created on: 15 de out de 2016
- *      Author: diegolee7
- */
-
+* rfid_utils.c - Auxiliary library to use time delays 
+* NOTE: Please also check the comments in rfid_utils.h - they provide useful hints
+* and background information.
+*/
 #include "rfid_utils.h"
 
 /****************************************
@@ -29,7 +27,7 @@ static StatusCode status;
  * @param  mfrc522   MFRC522 ADT pointer
  * @param  sector    card sector, 0 to 15
  * @param  blockAddr card block address, 0 to 63
- * @return           0 is no error, -1 is auth errom -2 is read error
+ * @return           0 is no error, -1 is authentication error -2 is read error
  */
 static int readCardBlock(MFRC522Ptr_t mfrc522, uint8_t sector,
 						 uint8_t blockAddr) {
@@ -67,7 +65,7 @@ static int readCardBlock(MFRC522Ptr_t mfrc522, uint8_t sector,
  * @param  mfrc522   MFRC522 ADT pointer
  * @param  sector    card sector, 0 to 15
  * @param  blockAddr card block address, 0 to 63
- * @return           0 is no error, -1 is auth errom -2 is write error
+ * @return           0 is no error, -1 is authentication error -2 is write error
  */
 static int writeCardBlock(MFRC522Ptr_t mfrc522, uint8_t sector,
 						  uint8_t blockAddr) {
@@ -147,7 +145,7 @@ void setupRFID2_exit(MFRC522Ptr_t* mfrc2) {
  * Function to read the balance, the balance is stored in the block 4 (sector
  * 1), the first 4 bytes
  * @param  mfrc522 MFRC522 ADT pointer
- * @return         the balance istored in the PICC, -999 for reading erros
+ * @return         the balance is stored in the PICC, -999 for reading errors
  */
 int readCardBalance(MFRC522Ptr_t mfrc522) {
 
@@ -170,7 +168,7 @@ int readCardBalance(MFRC522Ptr_t mfrc522) {
  * Function to rwrite the balance, the balance is stored in the block 4 (sector
  * 1), the first 4 bytes
  * @param  mfrc522    MFRC522 ADT pointer
- * @param  newBalance the balance to be writte  i  the card
+ * @param  newBalance the balance to be write  i  the card
  * @return            0 is no errors
  */
 int writeCardBalance(MFRC522Ptr_t mfrc522, int newBalance) {

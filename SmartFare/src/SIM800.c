@@ -1,16 +1,8 @@
 /*
- * SIM800.c
- *
- *  Created on: 4 de out de 2016
- *      Author: luisfg30
- */
-
-/*************************************************************************
-* SIM800 GPRS/HTTP Library
-* Distributed under GPL v2.0
-* Written by Stanley Huang <stanleyhuangyc@gmail.com>
-* For more information, please visit http://arduinodev.com
-*************************************************************************/
+* SIM800.c
+* NOTE: Please also check the comments in SIM800.h - they provide useful hints
+* and background information.
+*/
 
 #include "SIM800.h"
 

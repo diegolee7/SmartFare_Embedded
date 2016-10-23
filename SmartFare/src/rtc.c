@@ -102,6 +102,6 @@ void updateClockRTC() {
 
 		/* read and display time */
 		Chip_RTC_GetFullTime(LPC_RTC, &FullTime);
-		showTime(&FullTime);
+		//showTime(&FullTime);
 	}
 }

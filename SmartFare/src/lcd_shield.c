@@ -1,10 +1,8 @@
 /*
- * lcd_shield.c
- *
- *  Created on: 1 de set de 2016
- *      Author: luisfg30
- */
-
+* lcd_shield.c 
+* NOTE: Please also check the comments in lcd_shield.h - they provide useful hints
+* and background information.
+*/
 #define FONT_SIZE 8; // pixels
 
 #include "lcd_shield.h"

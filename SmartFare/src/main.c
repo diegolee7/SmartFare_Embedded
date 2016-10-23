@@ -1,16 +1,30 @@
 /**
- * LICENSE
+ *    Copyright 2016 
+ *    Luis Fernando Guerreiro
+ *    Diego Gabriel Lee  
+ *    Diogo Guilherme Garcia de Freitas
+ *    
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   Check "LICENSE" file in the root folder of project
  */
-/*****************************************************************************
+/*******************************************************************************
  * LPCXpresso4337 project includes
- ****************************************************************************/
+ ******************************************************************************/
 #include "board.h"
 #include "chip.h"
 #include <cr_section_macros.h>
 
-/*****************************************************************************
+/*******************************************************************************
  * Custom files and libraries includes
- ****************************************************************************/
+ ******************************************************************************/
 #include "lcd_shield.h"
 #include "delay.h"
 #include "MFRC522.h"
@@ -21,9 +35,9 @@
 #include "rtc.h"
 #include "jsonGenerator.h"
 
-/**********************************
+/*******************************************************************************
  *  Extra functions defined in the main.c file
- **********************************/
+ ******************************************************************************/
 void setupGSM();
 void setupRFID();
 void userTapIn();
@@ -32,9 +46,9 @@ int getUserByID(unsigned int userID);
 void addNewUser(unsigned int userID);
 void saveTapInData();
 
-/*****************************************************************************
+/*******************************************************************************
  * Private types/enumerations/variables
- ****************************************************************************/
+ ******************************************************************************/
 // temporary variables
 int last_balance = 0;
 unsigned int last_user_ID;
@@ -46,15 +60,15 @@ unsigned int userID_2 = 1404324234;
 uint8_t tapin_flag = 0;
 
 
-/*****************************************************************************
+/*******************************************************************************
  * Public types/enumerations/variables
- ****************************************************************************/
+ ******************************************************************************/
 
 // RFID structs
 MFRC522Ptr_t mfrc1;
 MFRC522Ptr_t mfrc2;
 
-// buffer to store the active users in the system. Onboard passengers
+// buffer to store the active users in the system. On board passengers
 static UserInfo_T usersBuffer[USER_BUFFER_SIZE];
 
 static char jsonString[400];
@@ -76,11 +90,11 @@ int main(void) {
 	Board_Init();
 	Board_LED_Set(0, false);
 
-	// Init shield lcd, and SSP interface pins
+	// Initialize shield LCD screen, and SSP interface pins
 	board_lcd_init(); //
 
 	//setupGSM();
-	//setupRTC();
+	setupRTC();
 	//setupRFID1_entrance(&mfrc1);
 	setupRFID2_exit(&mfrc2);
 
@@ -109,6 +123,7 @@ int main(void) {
 			// Select one of the cards
 			if (PICC_ReadCardSerial(mfrc2)) {
 				userTapOut();
+
 			}
 		}
 
@@ -119,9 +134,9 @@ int main(void) {
 	}
 }
 
-/**********************************
+/*******************************************************************************
  *  Peripheral setup functions
- **********************************/
+ ******************************************************************************/
 
 void setupGSM() {
 	uint8_t ret;
@@ -139,10 +154,13 @@ void setupGSM() {
 	DEBUGOUT("\nSetup Successful");
 }
 
-/**********************************
+/*******************************************************************************
  *  System routine functions
- **********************************/
+ ******************************************************************************/
 
+/**
+ * Executed every time the card reader detects a user in
+ */
 void userTapIn() {
 
 	// show card UID
@@ -164,7 +182,7 @@ void userTapIn() {
 		// Register user in the buffer
 		addNewUser(last_user_ID);
 	} else {
-		// user is already onboard
+		// user is already on board
 		change_lcd_message(USTATUS_UNAUTHORIZED);
 		PCD_Init(mfrc1, LPC_SSP1);
 	}
@@ -174,7 +192,7 @@ void userTapIn() {
 	if (last_balance == (-999)) {
 		// Error handling, the card does not have proper balance data inside
 	} else {
-		// Check for minumim balance
+		// Check for minimum balance
 		if (last_balance < min_balance) {
 			change_lcd_message(USTATUS_INSUF_BALANCE);
 			PCD_Init(mfrc1, LPC_SSP1);
@@ -192,6 +210,9 @@ void userTapIn() {
 	change_lcd_message(START_MESSAGE);
 }
 
+/**
+ * Executed every time the card reader detects a user out
+ */
 void userTapOut() {
 
 	// show card UID
@@ -230,6 +251,7 @@ void userTapOut() {
 		}
 
 		change_lcd_message(USTATUS_TAP_OUT);
+		saveTapInData();
 		tapin_flag = 0;
 	}
 
@@ -237,27 +259,30 @@ void userTapOut() {
 	change_lcd_message(START_MESSAGE);
 }
 
+/**
+ * Converts the user data local variables in a formatted struct
+ */
 void saveTapInData() {
 
-	userInfo.userId = 1;
-	userInfo.vehicleId = 1;
-	userInfo.fare = 1;
-	userInfo.balance = 1;
-	userInfo.distance = 1;
-	userInfo.inOdometerMeasure = 1;
+	userInfo.userId = 2092088836;
+	userInfo.vehicleId = 18456;
+	userInfo.fare = 370;
+	userInfo.balance = 1970;
+	userInfo.distance = 4;
+	userInfo.inOdometerMeasure = 76432;
 	userInfo.inTimestamp = FullTime;
-	userInfo.inLatitude = 1;
-	userInfo.inLongitude = 1;
-	userInfo.outOdometerMeasure = 1;
+	userInfo.inLatitude = -25.443827;
+	userInfo.inLongitude = -49.268412;
+	userInfo.outOdometerMeasure = 76436;
 	userInfo.outTimestamp = FullTime;
-	userInfo.outLatitude = 1;
-	userInfo.outLongitude = 1;
+	userInfo.outLatitude = -25.443827;
+	userInfo.outLongitude = -49.268412;
 
 	generateSmartFareJSON(&userInfo, jsonString);
 }
-/**********************************
+/*******************************************************************************
  *  Some util functions
- **********************************/
+ ******************************************************************************/
 
 /**
  * Search for a given userID, returns an index to it if found, -1 otherwise
@@ -297,8 +322,8 @@ void addNewUser(unsigned int userId) {
 }
 
 /**
- * [removeUser  description]
- * @param userId [description]
+ * Remove a user from the usersBuffer
+ * @param userId userID user unique identification number in the system
  */
 void removeUser (unsigned int userId){
 

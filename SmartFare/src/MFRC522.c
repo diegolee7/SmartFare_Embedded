@@ -2,7 +2,6 @@
 * MFRC522.c - C library to be used with the NXP MFRC522 RFID module
 * NOTE: Please also check the comments in MFRC522.h - they provide useful hints
 * and background information.
-* Released into the public domain.
 */
 
 #include "MFRC522.h"
@@ -20,7 +19,7 @@ MFRC522Ptr_t MFRC522_Init() {
 	//		struct MFRC522_T mfrc_struct;
 	//		Chip_SSP_DATA_SETUP_T data_setup;
 
-	// initalizae fields
+	// initialize fields
 	uint16_t i;
 	for (i = 0; i < BUFFER_SIZE; i++) {
 		mfrc_Instances[MFRC_Instance_Counter].Rx_Buf[i] = 0;
