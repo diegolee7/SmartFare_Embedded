@@ -44,6 +44,7 @@ void userTapIn();
 void userTapOut();
 int getUserByID(unsigned int userID);
 void addNewUser(unsigned int userID);
+void removeUser (unsigned int userId);
 void saveTapInData();
 
 /*******************************************************************************
@@ -53,12 +54,6 @@ void saveTapInData();
 int last_balance = 0;
 unsigned int last_user_ID;
 int usersBufferIndex = 0;
-
-//Temporary variables
-unsigned int userID_1 = 2092088836;
-unsigned int userID_2 = 1404324234;
-uint8_t tapin_flag = 0;
-
 
 /*******************************************************************************
  * Public types/enumerations/variables
@@ -71,8 +66,9 @@ MFRC522Ptr_t mfrc2;
 // buffer to store the active users in the system. On board passengers
 static UserInfo_T usersBuffer[USER_BUFFER_SIZE];
 
+//Auxiliary string to format a UserInfo_T struct to a JSON string
 static char jsonString[400];
-static UserInfo_T userInfo;
+
 
 /**
  * @brief	Main program body
@@ -93,7 +89,9 @@ int main(void) {
 	// Initialize shield LCD screen, and SSP interface pins
 	board_lcd_init(); //
 
-	//setupGSM();
+	// setupGPS();
+	// setupBluetooth
+	// setupGSM();
 	setupRTC();
 	//setupRFID1_entrance(&mfrc1);
 	setupRFID2_exit(&mfrc2);
@@ -170,7 +168,7 @@ void userTapIn() {
 	}
 	DEBUGOUT("\n\r");
 
-	/*
+	
 	// Convert the uid bytes to an integer, byte[0] is the MSB
 	last_user_ID =
 		(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
@@ -203,9 +201,7 @@ void userTapIn() {
 			PCD_Init(mfrc1, LPC_SSP1);
 		}
 	}
-	*/
-	set_lcd_balance(2340);
-	change_lcd_message(USTATUS_AUTHORIZED);
+	
 	delay_ms(2000);
 	change_lcd_message(START_MESSAGE);
 }
@@ -229,57 +225,31 @@ void userTapOut() {
 		(int)mfrc2->uid.uidByte[1] << 16 |
 		(int)mfrc2->uid.uidByte[0] << 24;
 
-	if (tapin_flag == 0) {
-		if (last_user_ID == userID_1) {
-			set_lcd_balance(2340);
-		} else if (last_user_ID == userID_2) {
-			set_lcd_balance(1200);
-		} else {
-			set_lcd_balance(9970);
-		}
-
-		change_lcd_message(USTATUS_AUTHORIZED);
-		tapin_flag = 1;
+	// Search for the uID in the usersBuffer
+	int userIndex = getUserByID(last_user_ID);
+	if (userIndex == -1) {
+		// Show error message, user never taped in
+		change_lcd_message(USTATUS_UNAUTHORIZED);
 	} else {
-		// user is leaving
-		if (last_user_ID == userID_1) {
-			set_lcd_balance(1970);
-		} else if (last_user_ID == userID_2) {
-			set_lcd_balance(830);
-		} else {
-			set_lcd_balance(9600);
-		}
-
-		change_lcd_message(USTATUS_TAP_OUT);
-		saveTapInData();
-		tapin_flag = 0;
-	}
-
+		// user is taping out, calculate fare
+		int fare = calculateFare();
+		//save data in user struct
+		usersBuffer[userIndex].fare = fare;
+		usersBuffer[userIndex].distance = odometer_Value - usersBuffer[userIndex].inOdometerMeasure;
+		usersBuffer[userIndex].outOdometerMeasure = odometer_Value;
+		usersBuffer[userIndex].outTimestamp = RTC_VALUE;
+		usersBuffer[userIndex].outLatitude = latitude;
+		usersBuffer[userIndex].outLongitude = longitude;
+		
+		//remove user from buffer
+		removeUser(last_user_ID);
+	}	
+	
 	delay_ms(2000);
 	change_lcd_message(START_MESSAGE);
 }
 
-/**
- * Converts the user data local variables in a formatted struct
- */
-void saveTapInData() {
 
-	userInfo.userId = 2092088836;
-	userInfo.vehicleId = 18456;
-	userInfo.fare = 370;
-	userInfo.balance = 1970;
-	userInfo.distance = 4;
-	userInfo.inOdometerMeasure = 76432;
-	userInfo.inTimestamp = FullTime;
-	userInfo.inLatitude = -25.443827;
-	userInfo.inLongitude = -49.268412;
-	userInfo.outOdometerMeasure = 76436;
-	userInfo.outTimestamp = FullTime;
-	userInfo.outLatitude = -25.443827;
-	userInfo.outLongitude = -49.268412;
-
-	generateSmartFareJSON(&userInfo, jsonString);
-}
 /*******************************************************************************
  *  Some util functions
  ******************************************************************************/
@@ -308,10 +278,17 @@ int getUserByID(unsigned int userId) {
  * @param userID user unique identification number in the system
  */
 void addNewUser(unsigned int userId) {
+	//create new user struct
 	UserInfo_T new_user;
+	//assign initial values
 	new_user.userId = userId;
+	new_user.vehicleId = VEHICLE_ID;
+	new_user.inOdometerMeasure = odometer_Value;
+	new_user.inTimestamp = RTC_VALUE;
+	new_user.inLatitude = latitude;				
+	new_user.inLongitude = longitude;	
 
-	// add user to usersBuffer
+	// add user to userInfoArray
 	usersBuffer[usersBufferIndex] = new_user;
 	usersBufferIndex++;
 	if (usersBufferIndex > USER_BUFFER_SIZE - 1) {
