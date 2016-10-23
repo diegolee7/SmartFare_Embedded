@@ -19,9 +19,9 @@
 typedef struct {
 	unsigned int userId; // the PICC used stores a 4 byte user ID
 	unsigned int vehicleId;
-	uint8_t fare;
-	uint8_t balance;  // the user balance in cents, may be negative
-	uint8_t distance; // last travel fare calculated
+	unsigned int fare;
+	int balance;  // the user balance in cents, may be negative
+	unsigned int distance; // last travel fare calculated
 	unsigned int
 		inOdometerMeasure; // vehicle odometer read when user get on board
 	RTC_TIME_T inTimestamp;

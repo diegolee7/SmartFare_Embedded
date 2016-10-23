@@ -80,7 +80,7 @@ int main(void) {
 	board_lcd_init(); //
 
 	//setupGSM();
-	//setupRTC();
+	setupRTC();
 	//setupRFID1_entrance(&mfrc1);
 	setupRFID2_exit(&mfrc2);
 
@@ -109,6 +109,7 @@ int main(void) {
 			// Select one of the cards
 			if (PICC_ReadCardSerial(mfrc2)) {
 				userTapOut();
+
 			}
 		}
 
@@ -230,6 +231,7 @@ void userTapOut() {
 		}
 
 		change_lcd_message(USTATUS_TAP_OUT);
+		saveTapInData();
 		tapin_flag = 0;
 	}
 
@@ -239,19 +241,19 @@ void userTapOut() {
 
 void saveTapInData() {
 
-	userInfo.userId = 1;
-	userInfo.vehicleId = 1;
-	userInfo.fare = 1;
-	userInfo.balance = 1;
-	userInfo.distance = 1;
-	userInfo.inOdometerMeasure = 1;
+	userInfo.userId = 2092088836;
+	userInfo.vehicleId = 18456;
+	userInfo.fare = 370;
+	userInfo.balance = 1970;
+	userInfo.distance = 4;
+	userInfo.inOdometerMeasure = 76432;
 	userInfo.inTimestamp = FullTime;
-	userInfo.inLatitude = 1;
-	userInfo.inLongitude = 1;
-	userInfo.outOdometerMeasure = 1;
+	userInfo.inLatitude = -25.443827;
+	userInfo.inLongitude = -49.268412;
+	userInfo.outOdometerMeasure = 76436;
 	userInfo.outTimestamp = FullTime;
-	userInfo.outLatitude = 1;
-	userInfo.outLongitude = 1;
+	userInfo.outLatitude = -25.443827;
+	userInfo.outLongitude = -49.268412;
 
 	generateSmartFareJSON(&userInfo, jsonString);
 }
