@@ -117,13 +117,9 @@ int main(void) {
 			// Select one of the cards
 			if (PICC_ReadCardSerial(mfrc2)) {
 				userTapOut();
-
 			}
 		}
 
-
-		// Calculate fare based on vehicle movement
-		// Update user data
 		__WFI();
 	}
 }
@@ -237,11 +233,19 @@ void userTapOut() {
 		int fare = calculateFare();
 		//save data in user struct
 		usersBuffer[userIndex].fare = fare;
-		usersBuffer[userIndex].distance = odometer_Value - usersBuffer[userIndex].inOdometerMeasure;
+		usersBuffer[userIndex].distance = odometer_Value - 
+		usersBuffer[userIndex].inOdometerMeasure;
 		usersBuffer[userIndex].outOdometerMeasure = odometer_Value;
-		usersBuffer[userIndex].outTimestamp = RTC_VALUE;
+		usersBuffer[userIndex].outTimestamp = FullTime;
 		usersBuffer[userIndex].outLatitude = latitude;
 		usersBuffer[userIndex].outLongitude = longitude;
+
+		// Calculate fare based on vehicle movement and update user data
+		calculateFare(last_user_ID);
+		// Update user balance in the card
+		int new_balance = usersBuffer[userIndex].balance - 
+		usersBuffer[userIndex].fare;
+		writeCardBalance(mfrc2, new_balance );
 
 		//remove user from buffer
 		removeUser(last_user_ID);
@@ -253,7 +257,7 @@ void userTapOut() {
 
 
 /*******************************************************************************
- *  Some util functions
+ *  Some extra functions
  ******************************************************************************/
 
 /**
@@ -286,7 +290,7 @@ void addNewUser(unsigned int userId) {
 	new_user.userId = userId;
 	new_user.vehicleId = VEHICLE_ID;
 	new_user.inOdometerMeasure = odometer_Value;
-	new_user.inTimestamp = RTC_VALUE;
+	new_user.inTimestamp = FullTime;
 	new_user.inLatitude = latitude;
 	new_user.inLongitude = longitude;
 
@@ -307,4 +311,24 @@ void addNewUser(unsigned int userId) {
 void removeUser (unsigned int userId){
 
 	//TODO
+}
+
+/**
+ * Calculate the fare based on the userID data
+ * @param  userId user unique identification number in the system
+ * @return        calculated fare
+ */
+int calculateFare(unsigned int userId){
+
+	// Search for the uID in the usersBuffer
+	int userIndex = getUserByID(userId);
+
+	//distance in km stored in the userID struct
+	int distance = usersBuffer[userIndex].distance;
+
+	//TODO : define how the fare is charged
+	int fare = 370;
+
+	usersBuffer[userIndex].fare = fare;
+	return fare;
 }
