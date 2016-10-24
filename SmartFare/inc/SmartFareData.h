@@ -10,6 +10,7 @@
 #define INC_SMARTFAREDATA_H_
 
 #define USER_BUFFER_SIZE 10
+#define VEHICLE_ID 18456
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -52,6 +53,5 @@ static const int min_balance = 300;
 volatile float latitude;
 volatile float longitude;
 volatile unsigned int odometer_Value;
-UserInfo_T userInfoArray[10];
 
 #endif /* INC_SMARTFAREDATA_H_ */
