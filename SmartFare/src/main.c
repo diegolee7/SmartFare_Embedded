@@ -1,9 +1,9 @@
 /**
- *    Copyright 2016 
+ *    Copyright 2016
  *    Luis Fernando Guerreiro
- *    Diego Gabriel Lee  
+ *    Diego Gabriel Lee
  *    Diogo Guilherme Garcia de Freitas
- *    
+ *
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -45,7 +45,7 @@ void userTapOut();
 int getUserByID(unsigned int userID);
 void addNewUser(unsigned int userID);
 void removeUser (unsigned int userId);
-void saveTapInData();
+void setupBluetooth();
 
 /*******************************************************************************
  * Private types/enumerations/variables
@@ -89,32 +89,28 @@ int main(void) {
 	// Initialize shield LCD screen, and SSP interface pins
 	board_lcd_init(); //
 
-	// setupGPS();
-	// setupBluetooth
-	// setupGSM();
+	setupGPS();
+	setupBluetooth();
+	setupGSM();
 	setupRTC();
-	//setupRFID1_entrance(&mfrc1);
+	setupRFID1_entrance(&mfrc1);
 	setupRFID2_exit(&mfrc2);
 
 	change_lcd_message(START_MESSAGE);
 
-	// Every LCD message changes the SSP configuration, must configure it for
-	// the RFID again
-	//PCD_Init(mfrc1, LPC_SSP1);
 
 	while (1) {
 
 		updateClockRTC();
-/*
+
 		// Look for new cards in RFID1
 		if (PICC_IsNewCardPresent(mfrc1)) {
 			// Select one of the cards
 			if (PICC_ReadCardSerial(mfrc1)) {
 				userTapIn();
-				saveTapInData();
 			}
 		}
-*/
+
 
 		// Look for new cards in RFID2
 		if (PICC_IsNewCardPresent(mfrc2)) {
@@ -152,6 +148,10 @@ void setupGSM() {
 	DEBUGOUT("\nSetup Successful");
 }
 
+void setupBluetooth() {
+	//TODO
+}
+
 /*******************************************************************************
  *  System routine functions
  ******************************************************************************/
@@ -168,11 +168,13 @@ void userTapIn() {
 	}
 	DEBUGOUT("\n\r");
 
-	
+
 	// Convert the uid bytes to an integer, byte[0] is the MSB
 	last_user_ID =
-		(int)mfrc1->uid.uidByte[3] | (int)mfrc1->uid.uidByte[2] << 8 |
-		(int)mfrc1->uid.uidByte[1] << 16 | (int)mfrc1->uid.uidByte[0] << 24;
+		(int)mfrc1->uid.uidByte[3] |
+		(int)mfrc1->uid.uidByte[2] << 8 |
+		(int)mfrc1->uid.uidByte[1] << 16 |
+		(int)mfrc1->uid.uidByte[0] << 24;
 
 	// Search for the uID in the usersBuffer
 	int userIndex = getUserByID(last_user_ID);
@@ -201,7 +203,7 @@ void userTapIn() {
 			PCD_Init(mfrc1, LPC_SSP1);
 		}
 	}
-	
+
 	delay_ms(2000);
 	change_lcd_message(START_MESSAGE);
 }
@@ -240,11 +242,11 @@ void userTapOut() {
 		usersBuffer[userIndex].outTimestamp = RTC_VALUE;
 		usersBuffer[userIndex].outLatitude = latitude;
 		usersBuffer[userIndex].outLongitude = longitude;
-		
+
 		//remove user from buffer
 		removeUser(last_user_ID);
-	}	
-	
+	}
+
 	delay_ms(2000);
 	change_lcd_message(START_MESSAGE);
 }
@@ -285,8 +287,8 @@ void addNewUser(unsigned int userId) {
 	new_user.vehicleId = VEHICLE_ID;
 	new_user.inOdometerMeasure = odometer_Value;
 	new_user.inTimestamp = RTC_VALUE;
-	new_user.inLatitude = latitude;				
-	new_user.inLongitude = longitude;	
+	new_user.inLatitude = latitude;
+	new_user.inLongitude = longitude;
 
 	// add user to userInfoArray
 	usersBuffer[usersBufferIndex] = new_user;
