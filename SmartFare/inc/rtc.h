@@ -50,6 +50,5 @@ void updateClockRTC();
 static volatile bool oneSecondReachedRTC;
 static volatile bool RTC_On0, RTC_On1;
 
-RTC_TIME_T FullTime;
 
 #endif

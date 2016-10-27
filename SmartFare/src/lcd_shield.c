@@ -70,7 +70,7 @@ void change_lcd_message(int message_code) {
 	case USTATUS_INSUF_BALANCE:
 		write_lcd_text(2, "Saldo insufic.");
 		print_balance(3, lcd_balance);
-		sprintf(string, "Saldo_min: %d", min_balance);
+		sprintf(string, "Saldo_min: %d", MIN_BALANCE);
 		write_lcd_text(4, string);
 		break;
 

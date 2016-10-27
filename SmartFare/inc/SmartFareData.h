@@ -10,6 +10,7 @@
 #define INC_SMARTFAREDATA_H_
 
 #define USER_BUFFER_SIZE 10
+#define MIN_BALANCE 300
 #define VEHICLE_ID 18456
 
 /*****************************************************************************
@@ -47,11 +48,5 @@ typedef enum __UserStatus {
 						   // minimum_balance
 	USTATUS_TAP_OUT_LOW_BALANCE
 } UserStatus;
-
-// Global variables and default values
-static const int min_balance = 300;
-volatile float latitude;
-volatile float longitude;
-volatile unsigned int odometer_Value;
 
 #endif /* INC_SMARTFAREDATA_H_ */

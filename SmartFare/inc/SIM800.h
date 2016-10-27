@@ -60,9 +60,7 @@
 // define DEBUG to one serial UART to enable debug information output
 //#define DEBUG Serial, DEBUG already defined in board.c
 
-static char bufferSIM800[256];
-uint8_t m_uint8_tsRecv;
-uint32_t m_checkTimer;
+
 
 
 typedef enum {

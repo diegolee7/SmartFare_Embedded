@@ -21,7 +21,6 @@
 #include "board.h"
 #include "chip.h"
 #include <cr_section_macros.h>
-
 /*******************************************************************************
  * Custom files and libraries includes
  ******************************************************************************/
@@ -59,6 +58,10 @@ int usersBufferIndex = 0;
  * Public types/enumerations/variables
  ******************************************************************************/
 
+volatile float latitude;
+volatile float longitude;
+volatile unsigned int odometer_Value;
+
 // RFID structs
 MFRC522Ptr_t mfrc1;
 MFRC522Ptr_t mfrc2;
@@ -89,9 +92,9 @@ int main(void) {
 	// Initialize shield LCD screen, and SSP interface pins
 	board_lcd_init(); //
 
-	setupGPS();
+//	setupGPS();
 	setupBluetooth();
-	setupGSM();
+//	setupGSM();
 	setupRTC();
 	setupRFID1_entrance(&mfrc1);
 	setupRFID2_exit(&mfrc2);
@@ -139,7 +142,7 @@ void setupGSM() {
 			break;
 		}
 		DEBUGOUT("\nError: %d", ret);
-		DEBUGOUT("\nError Buffer: %s", bufferSIM800);
+//		DEBUGOUT("\nError Buffer: %s", bufferSIM800);
 	}
 	DEBUGOUT("\nSetup Successful");
 }
@@ -189,7 +192,7 @@ void userTapIn() {
 		// Error handling, the card does not have proper balance data inside
 	} else {
 		// Check for minimum balance
-		if (last_balance < min_balance) {
+		if (last_balance < MIN_BALANCE) {
 			change_lcd_message(USTATUS_INSUF_BALANCE);
 			PCD_Init(mfrc1, LPC_SSP1);
 		} else {
@@ -230,18 +233,18 @@ void userTapOut() {
 		change_lcd_message(USTATUS_UNAUTHORIZED);
 	} else {
 		// user is taping out, calculate fare
-		int fare = calculateFare();
+//		int fare = calculateFare();
 		//save data in user struct
-		usersBuffer[userIndex].fare = fare;
-		usersBuffer[userIndex].distance = odometer_Value - 
-		usersBuffer[userIndex].inOdometerMeasure;
-		usersBuffer[userIndex].outOdometerMeasure = odometer_Value;
-		usersBuffer[userIndex].outTimestamp = FullTime;
-		usersBuffer[userIndex].outLatitude = latitude;
-		usersBuffer[userIndex].outLongitude = longitude;
+//		usersBuffer[userIndex].fare = fare;
+//		usersBuffer[userIndex].distance = odometer_Value -
+//		usersBuffer[userIndex].inOdometerMeasure;
+//		usersBuffer[userIndex].outOdometerMeasure = odometer_Value;
+//		usersBuffer[userIndex].outTimestamp = FullTime;
+//		usersBuffer[userIndex].outLatitude = latitude;
+//		usersBuffer[userIndex].outLongitude = longitude;
 
 		// Calculate fare based on vehicle movement and update user data
-		calculateFare(last_user_ID);
+//		calculateFare(last_user_ID);
 		// Update user balance in the card
 		int new_balance = usersBuffer[userIndex].balance - 
 		usersBuffer[userIndex].fare;
@@ -288,11 +291,11 @@ void addNewUser(unsigned int userId) {
 	UserInfo_T new_user;
 	//assign initial values
 	new_user.userId = userId;
-	new_user.vehicleId = VEHICLE_ID;
-	new_user.inOdometerMeasure = odometer_Value;
-	new_user.inTimestamp = FullTime;
-	new_user.inLatitude = latitude;
-	new_user.inLongitude = longitude;
+//	new_user.vehicleId = VEHICLE_ID;
+//	new_user.inOdometerMeasure = odometer_Value;
+//	new_user.inTimestamp = FullTime;
+//	new_user.inLatitude = latitude;
+//	new_user.inLongitude = longitude;
 
 	// add user to userInfoArray
 	usersBuffer[usersBufferIndex] = new_user;
@@ -324,7 +327,7 @@ int calculateFare(unsigned int userId){
 	int userIndex = getUserByID(userId);
 
 	//distance in km stored in the userID struct
-	int distance = usersBuffer[userIndex].distance;
+//	int distance = usersBuffer[userIndex].distance;
 
 	//TODO : define how the fare is charged
 	int fare = 370;

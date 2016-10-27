@@ -3,10 +3,11 @@
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
+static RTC_TIME_T FullTime;
 
 /* Gets and shows the current time and date */
 void showTime(RTC_TIME_T *pTime) {
-	DEBUGOUT("Time: %.2d:%.2d:%.2d %.2d/%.2d/%.4d\r\n",
+	DEBUGOUT("Time: %.2u:%.2u:%.2u %.2u/%.2u/%.4u\r\n",
 			 pTime->time[RTC_TIMETYPE_HOUR],
 			 pTime->time[RTC_TIMETYPE_MINUTE],
 			 pTime->time[RTC_TIMETYPE_SECOND],
