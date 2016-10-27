@@ -15,10 +15,14 @@ void showTime(RTC_TIME_T *pTime) {
 			 pTime->time[RTC_TIMETYPE_DAYOFMONTH],
 			 pTime->time[RTC_TIMETYPE_YEAR]);
 }
-
 /*****************************************************************************
  * Public functions
  ****************************************************************************/
+
+RTC_TIME_T  RTC_getFullTime(){
+	return FullTime;
+}
+
 
 /**
  * @brief   RTC interrupt handler
@@ -103,6 +107,6 @@ void updateClockRTC() {
 
 		/* read and display time */
 		Chip_RTC_GetFullTime(LPC_RTC, &FullTime);
-		//showTime(&FullTime);
+		showTime(&FullTime);
 	}
 }
