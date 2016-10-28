@@ -109,6 +109,7 @@ int main(void) {
 		if (PICC_IsNewCardPresent(mfrc2)) {
 			// Select one of the cards
 			if (PICC_ReadCardSerial(mfrc2)) {
+				//int status = writeCardBalance(mfrc2, 9999); // used to recharge the card
 				userTapIn();
 			}
 		}
@@ -171,7 +172,7 @@ void userTapIn() {
 		// New user
 	
 		// Read the user balance
-		// last_balance = readCardBalance(mfrc2);
+		last_balance = readCardBalance(mfrc2);
 
 		if (last_balance == (-999)) {
 			// Error handling, the card does not have proper balance data inside
@@ -190,24 +191,7 @@ void userTapIn() {
 	} else {
 		// User is leaving vehicle.
 
-
-		// Save data in user struct
-//		usersBuffer[userIndex].fare = fare;
-//		usersBuffer[userIndex].distance = odometer_Value -
-//		usersBuffer[userIndex].inOdometerMeasure;
-//		usersBuffer[userIndex].outOdometerMeasure = odometer_Value;
-//		usersBuffer[userIndex].outTimestamp = FullTime;
-//		usersBuffer[userIndex].outLatitude = latitude;
-//		usersBuffer[userIndex].outLongitude = longitude;
-
-		// Calculate fare based on vehicle movement and update user data
-		calculateFare(last_user_ID);
-		// Update user balance in the card
-		int new_balance = usersBuffer[userIndex].balance - 
-		usersBuffer[userIndex].fare;
-		// writeCardBalance(mfrc2, new_balance );
-
-		//remove user from buffer
+		// Update struct data and remove user from buffer
 		removeUser(last_user_ID);
 	}
 
@@ -284,6 +268,7 @@ void addNewUser(unsigned int userId) {
 
 	//assign initial values
 	new_user.userId = userId;
+	new_user.balance = last_balance;
 //	new_user.vehicleId = VEHICLE_ID;
 //	new_user.inOdometerMeasure = odometer_Value;
 //	new_user.inTimestamp = FullTime;
@@ -317,13 +302,16 @@ void removeUser (unsigned int userId){
 //		usersBuffer[userIndex].outLongitude = longitude;
 
 		// Calculate fare based on vehicle movement and update user data
-		calculateFare(last_user_ID);
-		// Update user balance in the card
-		int new_balance = usersBuffer[userIndex].balance - 
-		usersBuffer[userIndex].fare;
+		int fare = calculateFare(last_user_ID);
+
+		// Update user balance 
+		int new_balance = usersBuffer[userIndex].balance - fare;
+		usersBuffer[userIndex].balance = new_balance;
 
 		//update balance in the user card
 		writeCardBalance(mfrc2, new_balance );
+
+		//show message in LCD
 
 		//remove user from buffer
 		

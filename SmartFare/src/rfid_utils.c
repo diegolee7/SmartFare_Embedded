@@ -57,6 +57,11 @@ static int readCardBlock(MFRC522Ptr_t mfrc522, uint8_t sector,
 		return -2;
 	}
 
+	// Halt PICC
+    PICC_HaltA(mfrc522);
+    // Stop encryption on PCD
+    PCD_StopCrypto1(mfrc522);
+
 	return 0;
 }
 
@@ -93,6 +98,11 @@ static int writeCardBlock(MFRC522Ptr_t mfrc522, uint8_t sector,
 		DEBUGOUT(GetStatusCodeName(status));
 		return -2;
 	}
+
+	// Halt PICC
+    PICC_HaltA(mfrc522);
+    // Stop encryption on PCD
+    PCD_StopCrypto1(mfrc522);
 
 	return 0;
 }
