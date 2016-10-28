@@ -43,6 +43,7 @@ void userTapIn();
 void userTapOut();
 int getUserByID(unsigned int userID);
 void addNewUser(unsigned int userID);
+int calculateFare(unsigned int userId);
 void removeUser (unsigned int userId);
 void setupBluetooth();
 
@@ -108,8 +109,7 @@ int main(void) {
 		if (PICC_IsNewCardPresent(mfrc2)) {
 			// Select one of the cards
 			if (PICC_ReadCardSerial(mfrc2)) {
-				// userTapIn();
-				// userTapOut();
+				userTapIn();
 			}
 		}
 
@@ -148,59 +148,7 @@ void setupBluetooth() {
 /**
  * Executed every time the card reader detects a user in
  */
-//void userTapIn() {
-//
-//	// show card UID
-//	DEBUGOUT("Card uid: ");
-//	for (uint8_t i = 0; i < mfrc1->uid.size; i++) {
-//		DEBUGOUT(" %X", mfrc1->uid.uidByte[i]);
-//	}
-//	DEBUGOUT("\n\r");
-//
-//
-//	// Convert the uid bytes to an integer, byte[0] is the MSB
-//	last_user_ID =
-//		(int)mfrc1->uid.uidByte[3] |
-//		(int)mfrc1->uid.uidByte[2] << 8 |
-//		(int)mfrc1->uid.uidByte[1] << 16 |
-//		(int)mfrc1->uid.uidByte[0] << 24;
-//
-//	// Search for the uID in the usersBuffer
-//	int userIndex = getUserByID(last_user_ID);
-//	if (userIndex == -1) {
-//		// Register user in the buffer
-//		addNewUser(last_user_ID);
-//	} else {
-//		// user is already on board
-//		change_lcd_message(USTATUS_UNAUTHORIZED);
-//		PCD_Init(mfrc1, LPC_SSP1);
-//	}
-//
-//	// Read the user balance
-//	last_balance = readCardBalance(mfrc1);
-//	if (last_balance == (-999)) {
-//		// Error handling, the card does not have proper balance data inside
-//	} else {
-//		// Check for minimum balance
-//		if (last_balance < MIN_BALANCE) {
-//			change_lcd_message(USTATUS_INSUF_BALANCE);
-//			PCD_Init(mfrc1, LPC_SSP1);
-//		} else {
-//			set_lcd_last_userID(last_user_ID);
-//			set_lcd_balance(last_balance);
-//			change_lcd_message(USTATUS_AUTHORIZED);
-//			PCD_Init(mfrc1, LPC_SSP1);
-//		}
-//	}
-//
-//	delay_ms(2000);
-//	change_lcd_message(START_MESSAGE);
-//}
-
-/**
- * Executed every time the card reader detects a user out
- */
-void userTapOut() {
+void userTapIn() {
 
 	// show card UID
 	DEBUGOUT("Card uid: ");
@@ -208,6 +156,7 @@ void userTapOut() {
 		DEBUGOUT(" %X", mfrc2->uid.uidByte[i]);
 	}
 	DEBUGOUT("\n\r");
+
 
 	// Convert the uid bytes to an integer, byte[0] is the MSB
 	last_user_ID =
@@ -219,12 +168,30 @@ void userTapOut() {
 	// Search for the uID in the usersBuffer
 	int userIndex = getUserByID(last_user_ID);
 	if (userIndex == -1) {
-		// Show error message, user never taped in
-		change_lcd_message(USTATUS_UNAUTHORIZED);
+		// New user
+	
+		// Read the user balance
+		// last_balance = readCardBalance(mfrc2);
+
+		if (last_balance == (-999)) {
+			// Error handling, the card does not have proper balance data inside
+		} else {
+			// Check for minimum balance
+			if (last_balance < MIN_BALANCE) {
+				change_lcd_message(USTATUS_INSUF_BALANCE);
+			} else {
+				set_lcd_last_userID(last_user_ID);
+				set_lcd_balance(last_balance);
+				change_lcd_message(USTATUS_AUTHORIZED);
+				// Register user in the buffer
+				addNewUser(last_user_ID);
+			}
+		}
 	} else {
-		// user is taping out, calculate fare
-//		int fare = calculateFare();
-		//save data in user struct
+		// User is leaving vehicle.
+
+
+		// Save data in user struct
 //		usersBuffer[userIndex].fare = fare;
 //		usersBuffer[userIndex].distance = odometer_Value -
 //		usersBuffer[userIndex].inOdometerMeasure;
@@ -234,19 +201,54 @@ void userTapOut() {
 //		usersBuffer[userIndex].outLongitude = longitude;
 
 		// Calculate fare based on vehicle movement and update user data
-//		calculateFare(last_user_ID);
+		calculateFare(last_user_ID);
 		// Update user balance in the card
 		int new_balance = usersBuffer[userIndex].balance - 
 		usersBuffer[userIndex].fare;
-		writeCardBalance(mfrc2, new_balance );
+		// writeCardBalance(mfrc2, new_balance );
 
 		//remove user from buffer
 		removeUser(last_user_ID);
 	}
 
-	delay_ms(2000);
+
+
+	delay_ms(1000);
 	change_lcd_message(START_MESSAGE);
 }
+
+///**
+// * Executed every time the card reader detects a user out
+// */
+//void userTapOut() {
+//
+//	// show card UID
+//	DEBUGOUT("Card uid: ");
+//	for (uint8_t i = 0; i < mfrc2->uid.size; i++) {
+//		DEBUGOUT(" %X", mfrc2->uid.uidByte[i]);
+//	}
+//	DEBUGOUT("\n\r");
+//
+//	// Convert the uid bytes to an integer, byte[0] is the MSB
+//	last_user_ID =
+//		(int)mfrc2->uid.uidByte[3] |
+//		(int)mfrc2->uid.uidByte[2] << 8 |
+//		(int)mfrc2->uid.uidByte[1] << 16 |
+//		(int)mfrc2->uid.uidByte[0] << 24;
+//
+//	// Search for the uID in the usersBuffer
+//	int userIndex = getUserByID(last_user_ID);
+//	if (userIndex == -1) {
+//		// Show error message, user never taped in
+//		change_lcd_message(USTATUS_UNAUTHORIZED);
+//	} else {
+//		//remove user from buffer
+//		removeUser(last_user_ID);
+//	}
+//
+//	delay_ms(2000);
+//	change_lcd_message(START_MESSAGE);
+//}
 
 
 /*******************************************************************************
@@ -272,13 +274,14 @@ int getUserByID(unsigned int userId) {
 }
 
 /**
- * Create an UserInfo_T instance with empty data and stores it int the
+ * Create an UserInfo_T instance with boarding data and stores it int the
  * usersBuffer
  * @param userID user unique identification number in the system
  */
 void addNewUser(unsigned int userId) {
 	//create new user struct
 	UserInfo_T new_user;
+
 	//assign initial values
 	new_user.userId = userId;
 //	new_user.vehicleId = VEHICLE_ID;
@@ -298,12 +301,33 @@ void addNewUser(unsigned int userId) {
 }
 
 /**
- * Remove a user from the usersBuffer
+ * Remove a user from the usersBuffer after updating the vehicle data and 
+ * calculated fare
  * @param userId userID user unique identification number in the system
  */
 void removeUser (unsigned int userId){
 
-	//TODO
+		int userIndex = getUserByID(userId);
+		//save data in user struct
+//		usersBuffer[userIndex].distance = odometer_Value -
+//		usersBuffer[userIndex].inOdometerMeasure;
+//		usersBuffer[userIndex].outOdometerMeasure = odometer_Value;
+//		usersBuffer[userIndex].outTimestamp = FullTime;
+//		usersBuffer[userIndex].outLatitude = latitude;
+//		usersBuffer[userIndex].outLongitude = longitude;
+
+		// Calculate fare based on vehicle movement and update user data
+		calculateFare(last_user_ID);
+		// Update user balance in the card
+		int new_balance = usersBuffer[userIndex].balance - 
+		usersBuffer[userIndex].fare;
+
+		//update balance in the user card
+		writeCardBalance(mfrc2, new_balance );
+
+		//remove user from buffer
+		
+		
 }
 
 /**
