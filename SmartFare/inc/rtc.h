@@ -35,6 +35,7 @@
 
 #include "board.h"
 
+RTC_TIME_T  RTC_getFullTime();
 void showTime(RTC_TIME_T *pTime);
 void RTC_IRQHandler(void);
 void setupRTC();

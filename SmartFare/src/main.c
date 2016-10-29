@@ -50,18 +50,18 @@ void setupBluetooth();
 /*******************************************************************************
  * Private types/enumerations/variables
  ******************************************************************************/
-// temporary variables
+
 int last_balance = 0;
 unsigned int last_user_ID;
-int usersBufferIndex = 0;
+int usersBufferHead = 0;
 
 /*******************************************************************************
  * Public types/enumerations/variables
  ******************************************************************************/
 
-volatile float latitude;
-volatile float longitude;
-volatile unsigned int odometer_Value;
+volatile float latitude = 0.00;
+volatile float longitude = 0.00;
+volatile unsigned int odometer_Value = 12345;
 
 // RFID structs
 MFRC522Ptr_t mfrc2;
@@ -152,7 +152,7 @@ void setupBluetooth() {
 void userTapIn() {
 
 	// show card UID
-	DEBUGOUT("Card uid: ");
+	DEBUGOUT("Card uid bytes: ");
 	for (uint8_t i = 0; i < mfrc2->uid.size; i++) {
 		DEBUGOUT(" %X", mfrc2->uid.uidByte[i]);
 	}
@@ -166,8 +166,12 @@ void userTapIn() {
 		(int)mfrc2->uid.uidByte[1] << 16 |
 		(int)mfrc2->uid.uidByte[0] << 24;
 
+	DEBUGOUT("  User ID: %d ",last_user_ID);
+
 	// Search for the uID in the usersBuffer
 	int userIndex = getUserByID(last_user_ID);
+
+	DEBUGOUT (" userIndex: %d ",userIndex);
 	if (userIndex == -1) {
 		// New user
 	
@@ -186,6 +190,7 @@ void userTapIn() {
 				change_lcd_message(USTATUS_AUTHORIZED);
 				// Register user in the buffer
 				addNewUser(last_user_ID);
+				DEBUGOUT("usersBufferHead: %d \n", usersBufferHead);
 			}
 		}
 	} else {
@@ -193,46 +198,12 @@ void userTapIn() {
 
 		// Update struct data and remove user from buffer
 		removeUser(last_user_ID);
+		DEBUGOUT("usersBufferHead: %d \n", usersBufferHead);
 	}
 
-
-
-	delay_ms(1000);
+	delay_ms(2000);
 	change_lcd_message(START_MESSAGE);
 }
-
-///**
-// * Executed every time the card reader detects a user out
-// */
-//void userTapOut() {
-//
-//	// show card UID
-//	DEBUGOUT("Card uid: ");
-//	for (uint8_t i = 0; i < mfrc2->uid.size; i++) {
-//		DEBUGOUT(" %X", mfrc2->uid.uidByte[i]);
-//	}
-//	DEBUGOUT("\n\r");
-//
-//	// Convert the uid bytes to an integer, byte[0] is the MSB
-//	last_user_ID =
-//		(int)mfrc2->uid.uidByte[3] |
-//		(int)mfrc2->uid.uidByte[2] << 8 |
-//		(int)mfrc2->uid.uidByte[1] << 16 |
-//		(int)mfrc2->uid.uidByte[0] << 24;
-//
-//	// Search for the uID in the usersBuffer
-//	int userIndex = getUserByID(last_user_ID);
-//	if (userIndex == -1) {
-//		// Show error message, user never taped in
-//		change_lcd_message(USTATUS_UNAUTHORIZED);
-//	} else {
-//		//remove user from buffer
-//		removeUser(last_user_ID);
-//	}
-//
-//	delay_ms(2000);
-//	change_lcd_message(START_MESSAGE);
-//}
 
 
 /*******************************************************************************
@@ -269,19 +240,20 @@ void addNewUser(unsigned int userId) {
 	//assign initial values
 	new_user.userId = userId;
 	new_user.balance = last_balance;
-//	new_user.vehicleId = VEHICLE_ID;
-//	new_user.inOdometerMeasure = odometer_Value;
-//	new_user.inTimestamp = FullTime;
-//	new_user.inLatitude = latitude;
-//	new_user.inLongitude = longitude;
+	new_user.vehicleId = VEHICLE_ID;
+	new_user.inOdometerMeasure = odometer_Value;
+	new_user.inTimestamp = RTC_getFullTime();
+	new_user.inLatitude = latitude;
+	new_user.inLongitude = longitude;
 
 	// add user to userInfoArray
-	usersBuffer[usersBufferIndex] = new_user;
-	usersBufferIndex++;
-	if (usersBufferIndex > USER_BUFFER_SIZE - 1) {
+	usersBuffer[usersBufferHead] = new_user;
+	usersBufferHead ++;
+
+	if (usersBufferHead > USER_BUFFER_SIZE - 1) {
 		// save buffer in other safe place
 		// overwrite buffer values
-		usersBufferIndex = 0;
+		usersBufferHead = 0;
 	}
 }
 
@@ -294,12 +266,12 @@ void removeUser (unsigned int userId){
 
 		int userIndex = getUserByID(userId);
 		//save data in user struct
-//		usersBuffer[userIndex].distance = odometer_Value -
-//		usersBuffer[userIndex].inOdometerMeasure;
-//		usersBuffer[userIndex].outOdometerMeasure = odometer_Value;
-//		usersBuffer[userIndex].outTimestamp = FullTime;
-//		usersBuffer[userIndex].outLatitude = latitude;
-//		usersBuffer[userIndex].outLongitude = longitude;
+		usersBuffer[userIndex].distance = odometer_Value -
+			usersBuffer[userIndex].inOdometerMeasure;
+		usersBuffer[userIndex].outOdometerMeasure = odometer_Value;
+		usersBuffer[userIndex].outTimestamp = RTC_getFullTime();
+		usersBuffer[userIndex].outLatitude = latitude;
+		usersBuffer[userIndex].outLongitude = longitude;
 
 		// Calculate fare based on vehicle movement and update user data
 		int fare = calculateFare(last_user_ID);
@@ -309,13 +281,27 @@ void removeUser (unsigned int userId){
 		usersBuffer[userIndex].balance = new_balance;
 
 		//update balance in the user card
-		writeCardBalance(mfrc2, new_balance );
+		writeCardBalance(mfrc2, new_balance);
 
 		//show message in LCD
+		
+		set_lcd_balance(new_balance);
+		set_lcd_travel_fare(fare);
+		change_lcd_message(USTATUS_TAP_OUT);
 
-		//remove user from buffer
-		
-		
+		// Remove user from buffer. Must improve this Data structure and 
+		//algorithm latter.
+		usersBuffer[userIndex].userId = 0;
+
+		if (userIndex != usersBufferHead - 1){//not in the last position
+
+			//shift all other elements left
+			int i; 
+			for (i = userIndex ; i < usersBufferHead - 1; i ++){
+				usersBuffer[i] = usersBuffer[i + 1];
+			}
+		}
+		usersBufferHead --;
 }
 
 /**

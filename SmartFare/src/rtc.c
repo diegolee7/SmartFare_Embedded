@@ -70,6 +70,8 @@ void setupRTC() {
 	 */
 	Chip_RTC_Enable(LPC_RTC, ENABLE);
 
+	DEBUGOUT("RTC startted at: ");
+	showTime(&FullTime);
 }
 
 void set_starting_RTC_time() {
