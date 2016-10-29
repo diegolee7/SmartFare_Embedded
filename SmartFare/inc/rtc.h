@@ -35,6 +35,7 @@
 
 #include "board.h"
 
+RTC_TIME_T  RTC_getFullTime();
 void showTime(RTC_TIME_T *pTime);
 void RTC_IRQHandler(void);
 void setupRTC();
@@ -50,6 +51,5 @@ void updateClockRTC();
 static volatile bool oneSecondReachedRTC;
 static volatile bool RTC_On0, RTC_On1;
 
-RTC_TIME_T FullTime;
 
 #endif

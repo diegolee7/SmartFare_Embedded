@@ -31,8 +31,7 @@ extern "C" {
 /*******************************************************************************
  * Types/enumerations/variables
  ******************************************************************************/
-#define BUFFER_SIZE                                                            
-	1 // send only one byte per transfer, see WriteRegister functions
+#define BUFFER_SIZE  1 // send only one byte per transfer, see WriteRegister functions
 #define MFRC522_BIT_RATE 4000000 // Defined as 4MHz in the original library
 #define MFRC_MAX_INSTANCES 2	 // Used for ADT object allocation
 
@@ -302,7 +301,7 @@ MFRC522Ptr_t MFRC522_Init();
 
 /*******************************************************************************
 * Basic interface functions for communicating with the MFRC522
-/******************************************************************************/
+*******************************************************************************/
 void PCD_WriteRegister(MFRC522Ptr_t mfrc, uint8_t reg, uint8_t value);
 void PCD_WriteNRegister(MFRC522Ptr_t mfrc, uint8_t reg, uint8_t count,
 						uint8_t *values);
@@ -317,7 +316,7 @@ StatusCode PCD_CalculateCRC(MFRC522Ptr_t mfrc, uint8_t *data, uint8_t length,
 
 /*******************************************************************************
 * Functions for manipulating the MFRC522
-/******************************************************************************/
+*******************************************************************************/
 void PCD_Init(MFRC522Ptr_t mfrc, LPC_SSP_T *pSSP);
 void PCD_Reset(MFRC522Ptr_t mfrc);
 void PCD_AntennaOn(MFRC522Ptr_t mfrc);
@@ -327,7 +326,7 @@ void PCD_SetAntennaGain(MFRC522Ptr_t mfrc, uint8_t mask);
 
 /*******************************************************************************
 * Functions for communicating with PICCs
-/******************************************************************************/
+*******************************************************************************/
 StatusCode PCD_TransceiveData(MFRC522Ptr_t mfrc, uint8_t *sendData,
 							  uint8_t sendLen, uint8_t *backData,
 							  uint8_t *backLen, uint8_t *validBits,
@@ -348,7 +347,7 @@ StatusCode PICC_HaltA(MFRC522Ptr_t mfrc);
 
 /*******************************************************************************
 *Functions for communicating with MIFARE PICCs
-/******************************************************************************/
+*******************************************************************************/
 StatusCode PCD_Authenticate(MFRC522Ptr_t mfrc, uint8_t command,
 							uint8_t blockAddr, MIFARE_Key *key, Uid *uid);
 void PCD_StopCrypto1(MFRC522Ptr_t mfrc);
@@ -369,7 +368,7 @@ StatusCode PCD_NTAG216_AUTH(MFRC522Ptr_t mfrc, uint8_t *passWord,
 
 /*******************************************************************************
 * Support functions
-/******************************************************************************/
+*******************************************************************************/
 StatusCode PCD_MIFARE_Transceive(MFRC522Ptr_t mfrc, uint8_t *sendData,
 								 uint8_t sendLen, bool acceptTimeout);
 // static PICC_Type PICC_GetType(uint8_t sak);
@@ -398,7 +397,7 @@ bool MIFARE_UnbrickUidSector(MFRC522Ptr_t mfrc, bool logErrors);
 
 /*******************************************************************************
 * Convenience functions - does not add extra functionality
-/*******************************************************************************/
+********************************************************************************/
 bool PICC_IsNewCardPresent(MFRC522Ptr_t mfrc);
 bool PICC_ReadCardSerial(MFRC522Ptr_t mfrc);
 

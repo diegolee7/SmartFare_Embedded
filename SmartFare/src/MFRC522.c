@@ -1903,6 +1903,7 @@ void PICC_DumpMifareClassicSectorToSerial(
 			if (status != STATUS_OK) {
 				DEBUGOUT("PCD_Authenticate() failed: ");
 				DEBUGOUT(GetStatusCodeName(status));
+				DEBUGOUT("\n");
 				return;
 			}
 		}
@@ -2221,6 +2222,7 @@ bool MIFARE_SetUid(MFRC522Ptr_t mfrc, uint8_t *newUid, uint8_t uidSize,
 			if (logErrors) {
 				DEBUGOUT("PCD_Authenticate() failed: ");
 				DEBUGOUT(GetStatusCodeName(status));
+				DEBUGOUT("\n");
 			}
 			return false;
 		}

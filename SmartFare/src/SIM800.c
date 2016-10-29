@@ -17,6 +17,10 @@ static uint8_t SIM800_rxbuff[SIM800_UART_RRB_SIZE],
 
 static uint8_t httpState = HTTP_DISABLED;
 
+static char bufferSIM800[256];
+static uint8_t m_uint8_tsRecv;
+static uint32_t m_checkTimer;
+
 // Ver como faz o serial na placa
 // SoftwareSerial SIM_SERIAL(10, 11); // RX, TX
 

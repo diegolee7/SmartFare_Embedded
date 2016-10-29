@@ -70,3 +70,7 @@
 
 **/Debug/
 periph_uart_rb
+/SmartFare/.cproject
+/SmartFare/.project
+
+Release

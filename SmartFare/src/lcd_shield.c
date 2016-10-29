@@ -24,6 +24,10 @@ void set_lcd_balance(int balance){
 	lcd_balance = balance;
 }
 
+void set_lcd_travel_fare(int fare){
+	travel_fare = fare;
+}
+
 void board_lcd_init(){
 	//set up the LCD screen
 	Board_LCD_Init(); /* Pin Mux and Clock initialization */
@@ -70,7 +74,7 @@ void change_lcd_message(int message_code) {
 	case USTATUS_INSUF_BALANCE:
 		write_lcd_text(2, "Saldo insufic.");
 		print_balance(3, lcd_balance);
-		sprintf(string, "Saldo_min: %d", min_balance);
+		sprintf(string, "Saldo_min: %d", MIN_BALANCE);
 		write_lcd_text(4, string);
 		break;
 
@@ -80,11 +84,10 @@ void change_lcd_message(int message_code) {
 		break;
 
 	case USTATUS_TAP_OUT:
-		sprintf(string, "Tarifa: 3,70");
-		write_lcd_text(1, string);
-		print_balance(3, lcd_balance);
+		print_travel_fare(2, travel_fare);
+		print_balance(4, lcd_balance);
 		sprintf(string, "  ");
-		write_lcd_text(4, string);
+		write_lcd_text(5, string);
 		break;
 
 	case USTATUS_TAP_OUT_LOW_BALANCE:
@@ -102,6 +105,16 @@ void print_balance(uint8_t line, int balance) {
 		sprintf(string, "Saldo: -%d,%.2d", 0-balance/100, 0-balance%100);
 	} else {
 		sprintf(string, "Saldo: %d,%.2d", balance/100,balance%100);
+	}
+
+	write_lcd_text(line, string);
+}
+
+void print_travel_fare(uint8_t line, int fare){
+		if (fare < 0) {
+		sprintf(string, "Tarifa: -%d,%.2d", 0-fare/100, 0-fare%100);
+	} else {
+		sprintf(string, "Tarifa: %d,%.2d", fare/100,fare%100);
 	}
 
 	write_lcd_text(line, string);

@@ -57,6 +57,11 @@ static int readCardBlock(MFRC522Ptr_t mfrc522, uint8_t sector,
 		return -2;
 	}
 
+	// Halt PICC
+    PICC_HaltA(mfrc522);
+    // Stop encryption on PCD
+    PCD_StopCrypto1(mfrc522);
+
 	return 0;
 }
 
@@ -94,6 +99,11 @@ static int writeCardBlock(MFRC522Ptr_t mfrc522, uint8_t sector,
 		return -2;
 	}
 
+	// Halt PICC
+    PICC_HaltA(mfrc522);
+    // Stop encryption on PCD
+    PCD_StopCrypto1(mfrc522);
+
 	return 0;
 }
 
@@ -101,26 +111,8 @@ static int writeCardBlock(MFRC522Ptr_t mfrc522, uint8_t sector,
  * Public Functions
  ****************************************/
 
-void setupRFID1_entrance(MFRC522Ptr_t* mfrc1) {
-	*mfrc1 = MFRC522_Init();
-	// Define the pins to use as CS(SS or SSEL) and RST
-	Chip_SCU_PinMuxSet(0x1, 12,
-					   (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as GPIO
-	Chip_SCU_PinMuxSet(0x1, 10,
-					   (SCU_PINIO_FAST | SCU_MODE_FUNC0)); // Set as GPIO
-	// GPIO1[12]= P2_12
-	(*mfrc1)->_chipSelectPin.port = 1;
-	(*mfrc1)->_chipSelectPin.pin = 12;
-	// GPIO1[10]= P2_9
-	(*mfrc1)->_resetPowerDownPin.port = 1;
-	(*mfrc1)->_resetPowerDownPin.pin = 10;
-	PCD_Init(*mfrc1, LPC_SSP1);
-	DEBUGOUT("Reader 1 ");
-	PCD_DumpVersionToSerial(
-		*mfrc1); // Show details of PCD - MFRC522 Card Reader details
-}
 
-void setupRFID2_exit(MFRC522Ptr_t* mfrc2) {
+void setupRFID(MFRC522Ptr_t* mfrc2) {
 	// Repeat config for RFID reader 2
 	*mfrc2 = MFRC522_Init();
 	// Define the pins to use as CS(SS or SSEL) and RST
